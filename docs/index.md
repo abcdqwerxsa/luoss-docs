@@ -6,7 +6,7 @@ hero:
   text: 络书算衡
   tagline: 企业级 Kubernetes 多租户管理平台
   image:
-    src: ../public/logo.png
+    src: /logo.png
     alt: LuoSS Logo
   actions:
     - theme: brand
