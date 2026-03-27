@@ -72,6 +72,7 @@ export default withMermaid(
               { text: '镜像存储', link: '/guide/image-storage' },
               { text: '我的作业', link: '/guide/volcano-jobs' },
               { text: '使用统计', link: '/guide/my-usage' },
+              { text: '站内信通知', link: '/guide/notifications' },
               { text: '设置', link: '/guide/settings' },
             ],
           },
