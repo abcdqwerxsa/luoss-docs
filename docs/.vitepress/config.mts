@@ -4,7 +4,7 @@ import { withMermaid } from 'vitepress-plugin-mermaid'
 export default withMermaid(
   defineConfig({
     title: 'LuoSS 络书算衡',
-    description: 'K8s 租户管理平台使用文档 - 企业级 Kubernetes 多租户管理解决方案',
+    description: 'K8s 算力管理平台使用文档 - 企业级 Kubernetes 算力管理解决方案',
     lang: 'zh-CN',
 
     // SEO & Meta
@@ -12,8 +12,8 @@ export default withMermaid(
       ['link', { rel: 'icon', href: '/favicon.ico' }],
       ['meta', { name: 'theme-color', content: '#3eaf7c' }],
       ['meta', { name: 'og:type', content: 'website' }],
-      ['meta', { name: 'og:title', content: 'LuoSS 络书算衡 - K8s 租户管理平台' }],
-      ['meta', { name: 'og:description', content: '企业级 Kubernetes 多租户管理平台，提供云端开发环境、分布式训练、资源配额管理等功能' }],
+      ['meta', { name: 'og:title', content: 'LuoSS 络书算衡 - K8s 算力管理平台' }],
+      ['meta', { name: 'og:description', content: '企业级 Kubernetes 算力管理平台，提供云端开发环境、分布式训练、资源配额管理等功能' }],
       ['meta', { name: 'og:image', content: '/logo.png' }],
       ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
       ['meta', { name: 'keywords', content: 'Kubernetes, K8s, 租户管理, 云开发环境, 分布式训练, 容器平台' }],
@@ -131,7 +131,7 @@ export default withMermaid(
 
       // Footer
       footer: {
-        message: 'LuoSS 络书算衡 - K8s 租户管理平台',
+        message: 'LuoSS 络书算衡 - K8s 算力管理平台',
         copyright: 'Copyright © 2026',
       },
 
