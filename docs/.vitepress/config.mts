@@ -109,7 +109,6 @@ export default withMermaid(
           {
             text: '运维指南',
             items: [
-              { text: '部署安装', link: '/admin/deployment' },
               { text: '故障排查', link: '/admin/troubleshooting' },
             ],
           },
