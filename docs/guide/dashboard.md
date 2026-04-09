@@ -73,6 +73,7 @@
 
 ## 下一步
 
+- [调度仪表盘](/guide/scheduling-dashboard)
 - [开发环境](/guide/environments)
 - [训练任务](/guide/training-jobs)
 - [使用统计](/guide/my-usage)
