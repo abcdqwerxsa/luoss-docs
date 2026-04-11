@@ -52,16 +52,15 @@
 
 ## 队列层级关系
 
-系统支持层级队列管理：
+系统使用扁平队列模式，所有队列直接挂在 root 下：
 
 ```
 root
-├── debug (调试池)
-│   └── debug-sub
-└── compute (计算池)
-    ├── user-alice-compute
-    ├── user-bob-compute
-    └── ...
+├── debug-sub (调试池)
+├── normal-queue (普通用户共享)
+├── user-alice-compute
+├── user-bob-compute
+└── ...
 ```
 
 ### 父子队列约束
@@ -114,11 +113,40 @@ root
 
 ## 队列类型
 
-| 队列 | 说明 |
-|------|------|
-| default | 默认队列 |
-| high-priority | 高优先级队列 |
-| low-priority | 低优先级队列 |
+| 队列 | 说明 | 适用角色 |
+|------|------|----------|
+| `user-{username}-compute` | 用户个人计算队列 | 学生用户专属 |
+| `normal-queue` | 普通用户共享队列 | 普通用户共享 |
+| `debug-sub` | 调试池子队列 | 开发环境 |
+
+::: warning 已废弃队列
+`high-queue`、`low-queue`、`debug`、`compute` 等队列已废弃。系统启动时会自动清理这些遗留队列。
+:::
+
+## 队列亲和性
+
+计算队列（包括 `normal-queue` 和 `user-{username}-compute`）配置了节点组亲和性，确保训练任务调度到正确的节点：
+
+| 亲和性类型 | 节点组 | 说明 |
+|------------|--------|------|
+| NodeGroupAffinity | `com` | 优先调度到计算节点 |
+| NodeGroupAntiAffinity | `dev` | 避免调度到开发节点 |
+
+这确保训练任务不会占用开发环境的资源，开发环境使用的 `dev` 节点组不会运行训练负载。
+
+## 队列更新检测
+
+系统在启动时自动检测队列配置变更，包括：
+
+| 检测项 | 说明 |
+|--------|------|
+| 权重（Weight） | 调度权重变化 |
+| 优先级（Priority） | 队列优先级变化 |
+| 资源能力（Capability） | 资源上限变化 |
+| 可回收（Reclaimable） | 资源回收属性变化 |
+| 亲和性（Affinity） | 节点组亲和/反亲和变化 |
+
+检测到变化时自动更新 Volcano Queue CRD，无需手动干预。
 
 ## 相关链接
 

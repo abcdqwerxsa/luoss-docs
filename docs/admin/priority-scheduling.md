@@ -71,8 +71,8 @@
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
-  name: high-priority
-value: 2000000
+  name: tenant-high
+value: 1000000
 globalDefault: false
 description: "高优先级用户"
 preemptionPolicy: PreemptLowerPriority
@@ -80,10 +80,10 @@ preemptionPolicy: PreemptLowerPriority
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
-  name: low-priority
-value: 500
+  name: tenant-normal
+value: 1000
 globalDefault: true
-description: "低优先级用户"
+description: "普通优先级用户"
 preemptionPolicy: Never
 ```
 
@@ -104,8 +104,6 @@ DEPLOY_POSTGRESQL=true \
 IMAGE_TAG=v5.0.1 \
 ENABLE_PRIORITY=true \
 ENABLE_VOLCANO=true \
-HIGH_PRIORITY_VALUE=2000000 \
-LOW_PRIORITY_VALUE=500 \
 ./deploy.sh
 ```
 
@@ -151,45 +149,63 @@ GET /api/v1/users/{username}/priority
   "data": {
     "username": "alice",
     "priority": "high",
-    "priority_class": "high-priority",
-    "queue": "high-queue"
+    "priority_class": "tenant-high",
+    "queue": "user-alice-compute"
   }
 }
 ```
 
 ## 队列管理
 
-### 高优先级队列
+### 用户计算队列
+
+每个学生用户拥有独立的计算队列：
 
 ```yaml
 apiVersion: scheduling.volcano.sh/v1beta1
 kind: Queue
 metadata:
-  name: high-queue
+  name: user-alice-compute
+  labels:
+    volcano.sh/queue-type: user-compute
+    k8s-tenant/username: alice
 spec:
-  weight: 3
+  parent: root
+  weight: 1
+  reclaimable: true
+  deserved:
+    huawei.com/Ascend910: "4"
   capability:
-    cpu: "100"
-    memory: "200Gi"
-    nvidia.com/gpu: "10"
-  reclaimable: false
+    huawei.com/Ascend910: "64"
+  affinity:
+    nodeGroupAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution: ["com"]
+    nodeGroupAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution: ["dev"]
 ```
 
-### 低优先级队列
+### 普通用户共享队列
+
+普通用户（normal 角色）使用共享队列：
 
 ```yaml
 apiVersion: scheduling.volcano.sh/v1beta1
 kind: Queue
 metadata:
-  name: low-queue
+  name: normal-queue
 spec:
   weight: 1
-  capability:
-    cpu: "50"
-    memory: "100Gi"
-    nvidia.com/gpu: "4"
   reclaimable: true
+  affinity:
+    nodeGroupAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution: ["com"]
+    nodeGroupAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution: ["dev"]
 ```
+
+::: warning 已废弃队列
+`high-queue` 和 `low-queue` 已废弃并会在系统启动时自动清理。
+:::
 
 ### 队列属性
 
@@ -247,6 +263,10 @@ GET /api/v1/preemption/events
 ```
 
 ## 配额差异化
+
+::: info 活跃 NPU 总量限制
+除配额差异化外，所有用户还受到活跃 NPU 总量限制（默认 64 张/人），统计 Pending + Running 训练任务的 NPU 合计。详见 [配额管理](/admin/quotas)。
+:::
 
 ### 不同优先级的配额
 
@@ -320,8 +340,8 @@ Volcano Job 会自动关联到用户队列：
 
 ```yaml
 spec:
-  queue: high-queue
-  priorityClassName: high-priority
+  queue: user-alice-compute
+  priorityClassName: tenant-high
 ```
 
 ## 监控
@@ -348,7 +368,7 @@ GET /api/v1/queues/usage
   "data": {
     "queues": [
       {
-        "name": "high-queue",
+        "name": "user-alice-compute",
         "allocated": {
           "cpu": 40,
           "memory": "80Gi",

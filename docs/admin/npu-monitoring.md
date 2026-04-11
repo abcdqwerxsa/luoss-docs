@@ -110,6 +110,18 @@ Authorization: Bearer <admin-token>
 | 故障芯片总数 | 不可用的 NPU 芯片总数 |
 | 手动隔离数 | 被手动隔离的芯片数 |
 
+### 自动化监控组件
+
+| 组件 | 说明 |
+|------|------|
+| ClusterD 故障监控器 | 检测节点 Healthy→UnHealthy 状态变化，自动通知管理员 |
+| 调度指标采集器 | 从 ClusterD ConfigMap 采集调度统计数据 |
+| 集群事件监控 | 监控 kube-system 事件，检测 NodeNotReady、OOM 等异常 |
+
+::: info Prometheus 告警
+NPU 相关告警规则会自动触发管理员通知，详见 [调度仪表盘](/guide/scheduling-dashboard)。
+:::
+
 ## 最佳实践
 
 1. **定期检查节点状态**：关注不健康节点和故障芯片数量

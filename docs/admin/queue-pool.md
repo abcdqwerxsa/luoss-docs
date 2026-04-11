@@ -85,15 +85,28 @@ volcano:
   # Volcano scheduler metrics URL (用于获取实时队列指标)
   schedulerMetricsURL: "http://volcano-scheduler-service.volcano-system:8080/metrics"
 
+  queues:
+    normal:
+      name: "normal-queue"
+      weight: 1
+      capability: {}
+      reclaimable: true
+      preemptable: true
+
   hierarchy:
     enabled: true
     debugPool:
       percentage: 5      # Debug 池占集群资源百分比
+      reservedNPU: 32     # Debug 池预留 NPU 数量
       reclaimable: false
     computePool:
       userDeservedNPU: 4  # 每用户默认 deserved NPU
       userWeight: 1       # 用户队列权重
 ```
+
+::: info 普通用户共享队列
+`normal-queue` 用于普通用户角色的训练任务。该队列不设置固定的 capability 上限，可被回收（reclaimable），权重为 1。队列配置了 NodeGroupAffinity（`com` 节点）和 NodeGroupAntiAffinity（`dev` 节点），确保训练任务调度到计算节点。
+:::
 
 ### Metrics 端点要求
 

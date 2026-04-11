@@ -74,6 +74,56 @@
 
 调度仪表盘每 **30 秒** 自动刷新一次数据。也可以手动刷新获取最新状态。
 
+## 数据采集
+
+### 采集组件
+
+| 组件 | 说明 |
+|------|------|
+| ClusterD 客户端 | 读取 ClusterD ConfigMap 获取 NPU 故障和调度统计 |
+| PodGroup 阶段监控 | 每 30 秒轮询 PodGroup CR，追踪 Pending→Inqueue→Running 转换 |
+| 集群事件监控 | 监控 kube-system 事件（节点故障、组件崩溃、Pod 异常） |
+| 调度指标采集器 | 定期写入调度指标到 `scheduling_metrics` 表 |
+
+### ClusterD ConfigMap 数据源
+
+| ConfigMap | 说明 |
+|-----------|------|
+| `current-job-statistic` | 当前作业调度统计 |
+| `scheduling-exception-report` | 调度异常报告 |
+| `cluster-info-device-*` | NPU 设备信息 |
+| `statistic-fault-info` | 故障信息统计 |
+
+### Prometheus 指标
+
+| 指标名 | 类型 | 说明 |
+|--------|------|------|
+| `ktp_scheduling_latency_seconds` | Histogram | 调度延迟 |
+| `ktp_queue_wait_time_seconds` | Histogram | 队列等待时间 |
+| `ktp_fragmentation_index` | Gauge | 碎片化指数 |
+| `ktp_rescheduling_cost_npu_hours` | Counter | 重调度代价（NPU·h） |
+
+## Prometheus 告警规则
+
+系统预置了以下告警规则（需启用 Prometheus）：
+
+| 告警名称 | 条件 | 持续时间 | 严重性 | 说明 |
+|----------|------|----------|--------|------|
+| HighSchedulingLatency | P99 调度延迟 > 1800s | 15 分钟 | warning | 集群资源紧张或调度器瓶颈 |
+| HighFragmentation | 碎片化指数 > 0.6 | 1 小时 | warning | 空闲芯片过于分散 |
+| HighReschedulingCost | 1 小时重调度 > 100 NPU·h | 30 分钟 | critical | 大量算力因故障或抢占浪费 |
+
+### Helm 配置
+
+ClusterD 和调度监控可通过 Helm values 配置：
+
+```yaml
+clusterd:
+  enabled: true
+  namespace: "mindx-dl"
+  sync_interval: 60
+```
+
 ## 前提条件
 
 - 集群需启用 ClusterD 服务以获取 NPU 故障数据
