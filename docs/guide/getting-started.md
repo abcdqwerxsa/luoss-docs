@@ -149,9 +149,10 @@
 
 | 路径 | 说明 |
 |------|------|
+| `/mnt/model` | **大容量共享存储（推荐存放项目文件）** |
 | `/models` | 数据存储挂载点 |
 | `/models/share` | 共享数据目录 |
-| `/config/workspace` | Code Server 工作目录 |
+| `/config/workspace` | Code Server 工作目录（适合轻量数据） |
 
 ### 常用命令
 

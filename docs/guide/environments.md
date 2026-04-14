@@ -223,25 +223,37 @@ conda clean --all
 docker system prune
 ```
 
-## SSH 访问
+## 调试节点
 
-### 配置 SSH
+平台提供调试节点供用户通过 SSH 登录进行轻量级开发和调试工作。
+
+::: danger 严禁执行计算任务
+**调试节点仅供代码编辑、文件管理和环境调试使用，严禁用于执行任何计算任务**，包括但不限于：
+- 模型训练、微调
+- 大规模数据处理
+- 长时间运行的脚本
+- GPU/NPU 密集型任务
+
+计算任务请通过 [训练任务](/guide/training-jobs) 功能提交，由集群调度器统一分配资源执行。违反规定可能导致账号被限制。
+:::
+
+### SSH 登录
 
 1. 在 **设置** 页面添加 SSH 公钥
-2. 使用 SSH 客户端连接：
+2. 使用 SSH 客户端连接调试节点：
 
 ```bash
-ssh coder@<environment-host> -p <port>
+ssh <用户名>@<调试节点地址>
 ```
 
 ### SCP 文件传输
 
 ```bash
-# 上传文件
-scp -P <port> local_file.txt coder@<environment-host>:/config/workspace/
+# 上传文件到调试节点
+scp local_file.txt <用户名>@<调试节点地址>:/mnt/model/
 
-# 下载文件
-scp -P <port> coder@<environment-host>:/config/workspace/output.txt ./
+# 从调试节点下载文件
+scp <用户名>@<调试节点地址>:/mnt/model/output.txt ./
 ```
 
 ## 故障排查
@@ -281,7 +293,8 @@ scp -P <port> coder@<environment-host>:/config/workspace/output.txt ./
 - 利用自动停止功能避免资源浪费
 
 ### 2. 数据管理
-- 重要数据存放在 `/config/workspace`（共享 PVC，跨环境共享）
+- **项目文件优先存放在 `/mnt/model` 目录**，该目录为大容量共享存储，适合存放数据集、模型和项目代码
+- `/config/workspace`（共享 PVC，跨环境共享）可用于存放配置文件等轻量数据
 - 使用版本控制（Git）管理代码
 - overlay 层（`/`）适合安装工具包，不建议存放大文件
 
