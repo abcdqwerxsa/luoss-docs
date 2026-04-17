@@ -84,7 +84,7 @@ source /models/share/init_env.sh
 
 ```Plain
 bash /models/share/ultralytics-8.4.20/start.sh  #启动命令
-10.1.30.201:31443/user-demo1234/yolo_ddp:v1     #镜像路径
+10.1.30.201:31443/user-demo1234/yolo:v1.0     #镜像路径
 ```
 
 # 基于mindspeedLLM启动Qwen-2.5-7b分布式训练实例
@@ -109,7 +109,7 @@ docker.cnb.cool/nilpotenter/docker/codeserver-mindspeed:v1.0.5    #镜像路径
 ```Bash
 bash /models/share/Qwen3.5-122B-A10B/start_master.sh
 bash /models/share/Qwen3.5-122B-A10B/start_worker.sh
-10.1.30.201:31443/user-demo1234/qwen3.5:a10
+10.1.30.201:31443/user-demo1234/qwen:v1.0
 ```
 
 当前启动这个推理任务采用的是DP=2，TP=8，PP=1的设置，可以按照需要进行更改，在开发环境中使用命令`vi /models/share/Qwen3.5-122B-A10B/start_master.sh`即可编辑里面的内容
@@ -117,10 +117,10 @@ bash /models/share/Qwen3.5-122B-A10B/start_worker.sh
 ```Bash
 curl http://localhost:8010/v1/completions \  
 -H "Content-Type: application/json" \  
--d '{	"prompt": "你是什么模型，你的参数量大小是多少，介绍一下你的功能",        
-		"path": "/path/to/model/Qwen3.5-35B-A3B/",        
-		"max_tokens": 100,        
-		"temperature": 0        }'    
+-d '{    "prompt": "你是什么模型，你的参数量大小是多少，介绍一下你的功能",        
+        "path": "/path/to/model/Qwen3.5-35B-A3B/",        
+        "max_tokens": 100,        
+        "temperature": 0        }'    
 ```
 
 上面这个代码用于发送请求进行测试，当前需要进入master节点的终端运行
