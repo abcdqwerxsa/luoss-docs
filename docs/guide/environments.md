@@ -1,6 +1,6 @@
 # 开发环境
 
-开发环境提供基于 VS Code 的云端开发环境（Code Server），支持在线编写代码、调试和运行程序。
+开发环境提供基于 SSH 的云端开发环境，支持使用本地 IDE（VS Code Remote-SSH、PyCharm 等）远程连接，进行代码编写、调试和模型训练。
 
 <FeatureBadge status="stable" />
 
@@ -10,7 +10,7 @@
 |------|------|
 | **创建环境** | 配置资源创建通用开发环境 |
 | **启动/停止** | 控制环境运行状态 |
-| **在线编辑** | 通过浏览器访问 Code Server |
+| **SSH 访问** | 通过 SSH 连接使用本地 IDE 开发 |
 | **全量持久化** | 容器内所有修改重启后保留（pip/apt install 均不丢失） |
 | **搜索排序** | 按名称、状态快速查找和排序 |
 | **NPU 访问** | 自动访问所有 NPU 设备 |
@@ -56,7 +56,84 @@
 - **全量持久化**：容器内所有修改（pip install、apt-get、系统配置等）在环境重启后均会保留，提供 256G 持久化存储空间
 - 已启用特权模式和 Docker-in-Docker 支持
 - 可访问所有 NPU 设备（无需手动指定数量）
-- 预装常用开发工具
+- 预装常用开发工具（conda、Python 等）
+:::
+
+## SSH 连接
+
+开发环境通过 SSH 提供访问，您可以使用本地 IDE 远程连接到云端环境。
+
+### 前提条件
+
+1. **上传 SSH 公钥**：在 [设置 > SSH 公钥](/guide/settings#ssh-公钥管理) 中添加您的公钥
+2. **环境处于运行状态**：确保开发环境已启动（状态为 Running）
+
+### 连接方式
+
+在环境详情页面获取 SSH 连接命令：
+
+```bash
+ssh -p <端口> root@<服务器地址>
+```
+
+::: tip 连接信息
+每个环境的 SSH 连接命令在环境详情页面中显示，您可以直接复制使用。
+:::
+
+### 使用 VS Code Remote-SSH 连接
+
+1. 安装 VS Code 扩展：**Remote - SSH**（`ms-vscode-remote.remote-ssh`）
+2. 按 `Ctrl+Shift+P` 打开命令面板，输入 `Remote-SSH: Open Configuration File...`
+3. 添加 SSH 配置：
+
+```
+Host luoss-env
+    HostName <服务器地址>
+    Port <端口>
+    User root
+    IdentityFile ~/.ssh/id_ed25519
+```
+
+4. 按 `Ctrl+Shift+P`，选择 `Remote-SSH: Connect to Host...`
+5. 选择 `luoss-env` 连接
+
+### 使用 PyCharm 连接
+
+1. 打开 PyCharm，进入 **Settings > Tools > SSH Configurations**
+2. 添加新配置：
+   - Host：服务器地址
+   - Port：SSH 端口
+   - User name：`root`
+   - Authentication type：OpenSSH config and authentication agent
+3. 测试连接并保存
+
+### SCP/SFTP 文件传输
+
+```bash
+# 上传文件到环境
+scp -P <端口> local_file.txt root@<服务器地址>:/models/
+
+# 从环境下载文件
+scp -P <端口> root@<服务器地址>:/models/output.txt ./
+
+# 上传整个目录
+scp -P <端口> -r local_dir/ root@<服务器地址>:/models/
+```
+
+### 多环境路由
+
+如果拥有多个开发环境，可以使用环境名称指定连接目标：
+
+```bash
+# 连接默认环境
+ssh -p <端口> root@<服务器地址>
+
+# 连接指定环境（SSH 用户名为环境名称）
+ssh -p <端口> <环境名>@<服务器地址>
+```
+
+::: info 路由机制
+平台通过 SSH 公钥识别您的身份，因此只能连接到您自己的环境。SSH 登录名仅用于指定要连接的环境名称，不会影响用户身份验证。
 :::
 
 ## 数据持久化
@@ -73,11 +150,12 @@
 
 ### 持久化内容
 
-| 昡久的内容 | 是否持久化 | 说明 |
-|----------|:----------:------|
-| pip/apt 安装的包包 | ✅ 是 | 存储在 overlay 层 |
+| 持久的内容 | 是否持久化 | 说明 |
+|----------|:----------:|------|
+| pip/apt 安装的包 | ✅ 是 | 存储在 overlay 层 |
 | 修改的系统配置 | ✅ 是 | 存储在 overlay 层 |
-| /config/workspace 中的文件 | ✅ 是 | 通过共享存储持久化 |
+| /models 中的文件 | ✅ 是 | 共享存储持久化 |
+| conda 环境 | ✅ 是 | 存储在 overlay 层 |
 | 环境变量 | ❌ 否 | 每次启动重新生成 |
 
 ### 存储空间
@@ -88,7 +166,7 @@
 
 ### 共享用户存储
 
-每个用户有一个独立的共享存储 PVC（`user-storage-{用户名}`），挂载到环境内的 `/config/workspace`。所有环境共享同一个用户存储，
+每个用户有一个独立的共享存储 PVC（`user-storage-{用户名}`），挂载到环境内的 `/models`。所有环境共享同一个用户存储。
 
 ::: warning 注意
 环境数据存储在宿主机 `/mnt/model/overlay/` 目录下的稀疏镜像文件中。删除环境时如未勾选"保留数据"，overlay 数据将被自动清理。
@@ -112,11 +190,12 @@
 2. 点击 **启动** 按钮
 3. 等待状态变为 Running
 
-### 打开环境
+### SSH 连接
 
 1. 确认环境状态为 Running
-2. 点击 **打开** 按钮
-3. 在新标签页中访问 Code Server
+2. 在环境详情中复制 SSH 连接命令
+3. 在本地终端执行连接
+4. 或使用 VS Code Remote-SSH / PyCharm 等工具连接
 
 ### 环境操作
 
@@ -146,12 +225,14 @@
 开发环境已自动启用对所有 NPU 设备的访问，无需手动配置。如需独占使用特定 NPU，请在代码中通过环境变量或设备 ID 指定。
 :::
 
-### VS Code 优化
+### VS Code Remote-SSH 优化
 
-在 `settings.json` 中添加：
+在 VS Code 连接到环境后，通过命令面板 `Remote-SSH: Settings` 进行优化：
 
 ```json
 {
+  "remote.SSH.useLocalServer": true,
+  "remote.SSH.enableRemoteCommand": true,
   "files.watcherExclude": {
     "**/.git/**": true,
     "**/node_modules/**": true,
@@ -161,53 +242,31 @@
     "**/node_modules": true,
     "**/venv": true,
     "**/.git": true
-  },
-  "extensions.autoUpdate": false
+  }
 }
 ```
 
 ### 终端优化
 
-```json
-{
-  "terminal.integrated.scrollback": 5000,
-  "terminal.integrated.fastScrollSensitivity": 5
-}
-```
+SSH 连接后即可使用环境内的终端，conda 环境和 Ascend NPU 工具链会自动加载。
 
-## 扩展安装
+## 常用路径
 
-### 推荐扩展
-
-#### Python 开发
-
-```bash
-code-server --install-extension ms-python.python
-code-server --install-extension ms-python.vscode-pylance
-code-server --install-extension ms-toolsai.jupyter
-```
-
-#### 深度学习
-
-```bash
-code-server --install-extension ms-toolsai.tensorboard
-```
-
-#### 通用工具
-
-```bash
-code-server --install-extension eamodio.gitlens
-code-server --install-extension ms-azuretools.vscode-docker
-```
+| 路径 | 说明 |
+|------|------|
+| `/models` | **用户主目录（默认工作目录）** |
+| `/mnt/model` | 大容量共享存储（推荐存放项目文件） |
+| `/models/share` | 共享数据目录 |
+| `/root` | 原始系统主目录（conda 等工具安装在此） |
 
 ## 存储管理
 
 ### 查看存储使用
 
 ```bash
-# 在环境终端中运行
-df -h /config/workspace
-du -sh /config/workspace/*
+# 在 SSH 终端中运行
+df -h /models
+du -sh /models/*
 ```
 
 ### 清理空间
@@ -266,11 +325,16 @@ scp <用户名>@<调试节点地址>:/mnt/model/output.txt ./
 2. 检查镜像是否有效
 3. 查看环境事件
 
-### 连接超时
+### SSH 连接失败
 
-1. 检查网络连接
-2. 尝试刷新页面
-3. 检查环境是否在运行
+1. **确认已上传 SSH 公钥**：在 [设置 > SSH 公钥](/guide/settings#ssh-公钥管理) 中检查是否已添加公钥
+2. **确认环境正在运行**：SSH 只能连接 Running 状态的环境
+3. **检查密钥匹配**：确保使用的私钥与上传的公钥配对
+4. **检查 Host Key 变更**：如果连接提示 host key 变更，执行：
+   ```bash
+   ssh-keygen -R "[<服务器地址>]:<端口>"
+   ```
+5. 检查网络连接是否正常
 
 ### 环境一直处于 Creating 状态
 
@@ -278,12 +342,24 @@ scp <用户名>@<调试节点地址>:/mnt/model/output.txt ./
 2. 如果超过 10 分钟仍未就绪，检查节点资源是否充足
 3. 查看环境事件或联系管理员
 
+### conda 命令不可用
+
+conda 环境在 SSH 登录后会自动加载。如果 conda 命令不可用：
+
+```bash
+# 手动加载 conda
+source /root/.bashrc
+
+# 或重新初始化
+eval "$(/root/miniconda3/bin/conda shell.bash hook)"
+```
+
 ### 数据相关问题
 
 ::: warning 数据安全
 - **全量持久化**：容器内所有修改（pip/apt 安装、系统配置等）在环境重启后均会保留
 - **删除环境**：默认清理 overlay 数据。如需保留，删除时勾选"保留数据"
-- **共享存储**：`/config/workspace` 路径下的数据存储在共享 PVC 中，不受环境删除影响
+- **共享存储**：`/models` 路径下的数据存储在共享 PVC 中，不受环境删除影响
 - **删除用户**：将清除该用户的所有数据，包括 overlay 存储和共享 PVC
 :::
 
@@ -296,16 +372,17 @@ scp <用户名>@<调试节点地址>:/mnt/model/output.txt ./
 
 ### 2. 数据管理
 - **项目文件优先存放在 `/mnt/model` 目录**，该目录为大容量共享存储，适合存放数据集、模型和项目代码
-- `/config/workspace`（共享 PVC，跨环境共享）可用于存放配置文件等轻量数据
+- `/models`（用户主目录）存放个人配置和代码
 - 使用版本控制（Git）管理代码
 - overlay 层（`/`）适合安装工具包，不建议存放大文件
 
 ### 3. 安全实践
-- 不在代码中硬编码密钥
-- 使用环境变量存储敏感信息
-- 定期更换密码
+- 使用强密钥保护 SSH 私钥（推荐 Ed25519）
+- 不与他人共享 SSH 私钥
+- 定期更换 SSH 密钥
 
 ## 相关文档
+- [设置 - SSH 公钥管理](/guide/settings)
 - [集群拓扑](/guide/cluster-topology)
 - [数据存储](/guide/model-manager)
 - [常见问题](/guide/faq)
