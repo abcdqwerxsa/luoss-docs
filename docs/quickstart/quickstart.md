@@ -18,7 +18,7 @@
 
 首先使用`npu-smi info`命令确认所有显卡状态是否正常连接，如果没有正常显示使用以下命令尝试修复
 
-```Plain
+```Bash
 source /usr/local/Ascend/ascend-toolkit/set_env.sh#如果遇到报错提示没有source命令，使用下面命令进行环境变量设置
 export    LD_LIBRARY_PATH=/usr/local/Ascend/driver/lib64:/usr/local/Ascend/driver/lib64/common:/usr/local/Ascend/driver/lib64/driver:$LD_LIBRARY_PATH
 export ASCEND_TOOLKIT_HOME=/usr/local/Ascend/ascend-toolkit/latest
@@ -34,7 +34,7 @@ export ASCEND_HOME_PATH=${ASCEND_TOOLKIT_HOME}
 
 对于分布式训练和推理，在ascend平台会使用华为官方的hccl（集合通信库），hccl会根据环境变量自动进行通信域的搭建，我们主要使用的是基于root节点信息创建通信域，使用以下代码进行环境的自动初始化，可以加在自己的启动命令前面，****对于单节点多卡训练的话，不要使用这个命令进行环境变量的初始化****。
 
-```Plain
+```Bash
 source /models/share/init_env.sh
 ```
 
@@ -78,13 +78,11 @@ source /models/share/init_env.sh
 
 ![](images/12.png)
 
-![](images/13.png)
+![](images/task-yolo.png)
 
-![](images/14.png)
-
-```Plain
+```Bash
 bash /models/share/ultralytics-8.4.20/start.sh  #启动命令
-10.1.30.201:31443/user-demo1234/yolo:v1.0     #镜像路径
+10.1.30.201:31443/user-demo1234/yolo:v1.1       #镜像路径
 ```
 
 # 基于mindspeedLLM启动Qwen-2.5-7b分布式训练实例
@@ -93,8 +91,8 @@ bash /models/share/ultralytics-8.4.20/start.sh  #启动命令
 
 ![](images/16.png)
 
-```Plain
-bash /models/share/MindSpeed-LLM/start.sh                        #启动命令
+```Bash
+bash /models/share/MindSpeed-LLM/start.sh                         #启动命令
 docker.cnb.cool/nilpotenter/docker/codeserver-mindspeed:v1.0.5    #镜像路径
 ```
 
@@ -102,14 +100,12 @@ docker.cnb.cool/nilpotenter/docker/codeserver-mindspeed:v1.0.5    #镜像路径
 
 ![](images/17.png)
 
-![](images/18.png)
-
-![](images/19.png)
+![](images/task-vllm.png)
 
 ```Bash
-bash /models/share/Qwen3.5-122B-A10B/start_master.sh
-bash /models/share/Qwen3.5-122B-A10B/start_worker.sh
-10.1.30.201:31443/user-demo1234/qwen:v1.0
+bash /models/share/Qwen3.5-122B-A10B/start_master.sh   #master任务启动命令
+bash /models/share/Qwen3.5-122B-A10B/start_worker.sh   #worker任务启动命令
+10.1.30.201:31443/user-demo1234/qwen:v1.0              #镜像路径
 ```
 
 当前启动这个推理任务采用的是DP=2，TP=8，PP=1的设置，可以按照需要进行更改，在开发环境中使用命令`vi /models/share/Qwen3.5-122B-A10B/start_master.sh`即可编辑里面的内容
