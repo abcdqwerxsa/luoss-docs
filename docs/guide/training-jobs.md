@@ -481,10 +481,11 @@ PyTorch 框架下，`sed` patch 命令是**必须**的，它会在 `torch/distri
 | 镜像 | Dockerfile | 说明 |
 |------|-----------|------|
 | **PyTorch (MindSpeed-LLM)** | `training/pytorch/Dockerfile` | 完整构建，基于 Ubuntu 20.04 |
-| **PyTorch 轻量版** | `training/pytorch/Dockerfile.light` | 基于官方预构建镜像，只需下载 TaskD + MindIO TTP |
+| **PyTorch 轻量版** | `training/pytorch/Dockerfile.light` | 基于官方 `mindspeed-llm` 预构建镜像，只需下载 TaskD + MindIO TTP |
 | **MindSpore (MindFormers)** | `training/mindspore/Dockerfile` | 完整构建，基于 Ubuntu 20.04 |
+| **MindSpore 轻量版** | `training/mindspore/Dockerfile.light` | 基于官方 `mindspore-ascend-a2` 预构建镜像，只需下载 TaskD + MindIO TTP |
 
-轻量版 Dockerfile 基于华为官方 `mindspeed-llm` 预构建镜像，只需额外下载 2-3 个 whl 包即可构建。
+轻量版 Dockerfile 基于华为官方预构建镜像，只需额外下载 2-3 个 whl 包即可构建。
 
 ### 镜像中**不要**安装的内容
 
