@@ -283,8 +283,23 @@ def load_latest_checkpoint(model, optimizer, path='/models/checkpoints'):
 
 | 参数 | 说明 |
 |------|------|
+| **Pod 级别重调度** | 只重启故障 Pod，其他 Pod 保持运行，减少资源调度时间 |
+| **亚健康策略** | 处理亚健康芯片的策略（`ignore`/`graceExit`/`forceExit`/`hotSwitch`） |
+| **全局重调度上限** | 限制总重调度次数（`backoffLimit`） |
 | **MindIO TFT** | MindIO Transparent Fault Tolerance，在故障发生时自动生成临终 checkpoint，减少训练迭代损失 |
 | **MindIO ACP** | MindIO Async Checkpoint Persistence，异步保存 checkpoint 到持久化存储，降低 checkpoint 保存对训练性能的影响 |
+
+#### 自动注入的资源
+
+开启断点续训后，平台会自动创建和注入以下资源：
+
+| 资源 | 说明 | 注入方式 |
+|------|------|----------|
+| **reset-config ConfigMap** | 优雅容错状态管理配置 | 自动创建 `reset-config-{job-name}` ConfigMap |
+| **reset-config Volume** | 挂载到 `/user/restore/reset/config`（readOnly） | hostPath 挂载 |
+| **TaskD 端口 (9601)** | TaskD 进程间通信端口 | 开启 Pod 级别重调度时自动注入 |
+| **TTP 端口 (8000)** | MindIO TTP 通信端口 | 开启 MindIO TFT 时自动注入 |
+| **MindIO ACP 共享内存** | `/mnt/mindio-acp` 内存卷 | 开启 MindIO ACP 时自动注入 |
 
 #### TaskD 进程级恢复（可选）
 
@@ -294,24 +309,54 @@ def load_latest_checkpoint(model, optimizer, path='/models/checkpoints'):
 - 进程级故障检测和恢复
 - 与 ClusterD 通信协调故障恢复
 
+**1. 拉起 TaskD Manager（仅主节点）**
+
+创建 `manager.py` 文件：
+
 ```python
-# TaskD 集成示例（需要在镜像中安装 taskd 包）
-import taskd
+from taskd.api import init_taskd_manager, start_taskd_manager
+import os
 
-# 初始化 TaskD Worker
-taskd.init_taskd_worker(rank_id=rank_id, framework="pt")
+job_id = os.getenv("MINDX_TASK_ID")
+node_nums = int(os.getenv("WORLD_SIZE", "1")) // int(os.getenv("LOCAL_WORLD_SIZE", "1"))
+proc_per_node = int(os.getenv("LOCAL_WORLD_SIZE", "1"))
 
-# 启动 TaskD Worker
-taskd.start_taskd_worker()
-
-# 训练结束后销毁
-taskd.destroy_taskd_worker()
+init_taskd_manager({"job_id": job_id, "node_nums": node_nums, "proc_per_node": proc_per_node})
+start_taskd_manager()
 ```
 
+**2. 在启动脚本中配置 LD_PRELOAD 并拉起 Manager**
+
+```bash
+# 设置 LD_PRELOAD
+TASKD_SO_PATH="$(pip show taskd | awk '/^Location: / {print $2"/taskd/python/cython_api/libs/libtaskd.so"}')"
+export LD_PRELOAD=$TASKD_SO_PATH:$LD_PRELOAD
+
+# PyTorch：rank 0 拉起 Manager
+if [[ "${RANK}" -eq 0 ]]; then
+    python manager.py 2>> /job/code/alllogs/taskd/error.log &
+fi
+
+# MindSpore：MS_SCHED_HOST 等于 POD_IP 的节点拉起 Manager
+if [[ "${MS_SCHED_HOST}" == "${POD_IP}" ]]; then
+    python manager.py 2>> /job/code/alllogs/taskd/error.log &
+fi
+```
+
+**3. 关键环境变量**
+
+| 变量 | 说明 |
+|------|------|
+| `RESUME_MODE_ENABLE=1` | 平台约定，训练脚本检测恢复模式 |
+| `HCCL_ASYNC_ERROR_HANDLING=0` | 关闭 watchdog（PyTorch 进程级恢复必需） |
+| `TTP_OT=360` | MindIO TTP 超时 |
+| `MS_ENABLE_TFT='{RSC:1}'` | MindSpore 开启 Pod 级别重调度 |
+
 ::: warning TaskD 使用前提
-1. 镜像中需要安装 `taskd` Python 包（包含在官方昇腾训练镜像中）
-2. 集群需要部署 ClusterD 和 TaskD 组件
-3. 训练代码需要按 TaskD API 规范集成
+1. 镜像中需要安装 `taskd` 和 `mindio_ttp` Python 包
+2. PyTorch 框架需要在镜像中 patch `torch/distributed/run.py`
+3. 集群需要部署 ClusterD 和 TaskD 组件
+4. 训练代码需要按 TaskD API 规范集成
 :::
 
 ## 测试版本
@@ -359,7 +404,7 @@ bash /models/share/scripts/train_start.sh /models /models/output main.py
 | 要求 | 说明 |
 |------|------|
 | **架构** | 必须为 `linux/arm64`（华为鲲鹏 ARM 架构） |
-| **基础镜像** | 推荐使用官方昇腾训练镜像（如 `torch:b030`） |
+| **基础镜像** | 推荐使用官方昇腾训练镜像（如 `torch:b030`），或平台提供的训练镜像（见下方） |
 | **驱动依赖** | **不要**在镜像中安装 Ascend 驱动，驱动通过 volume 从宿主机挂载 |
 | **Ascend Toolkit** | **不要**在镜像中安装 Ascend Toolkit，通过 volume 从宿主机挂载 |
 
@@ -375,6 +420,7 @@ bash /models/share/scripts/train_start.sh /models /models/output main.py
 | `/dev/shm` | Memory (16Gi) | 共享内存（分布式训练必需） |
 | `/var/log/npu` | `/var/log/npu` | NPU 日志 |
 | `/user/serverid/devindex/config` | ConfigMap | HCCL rank table 配置（自动生成） |
+| `/user/restore/reset/config` | hostPath | 优雅容错 reset-config（开启断点续训时自动注入，readOnly） |
 
 ### 自动注入的环境变量
 
@@ -385,6 +431,7 @@ bash /models/share/scripts/train_start.sh /models /models/output main.py
 | `framework` | 训练框架名称 | `PyTorch` |
 | `POD_UID` | Pod 唯一标识 | `abc123-def456...` |
 | `XDL_IP` | Pod 所在节点 IP | `10.1.30.36` |
+| `RESUME_MODE_ENABLE` | 断点续训模式标记（开启断点续训时注入） | `1` |
 
 ### 镜像中必须安装的内容
 
@@ -392,7 +439,52 @@ bash /models/share/scripts/train_start.sh /models /models/output main.py
 |------|------|----------|
 | **Python 3** | 训练脚本运行环境 | `apt-get install python3` |
 | **PyTorch** | 训练框架（或其他框架） | `pip install torch` |
+| **torch_npu** | 昇腾 NPU 适配插件 | `pip install torch_npu` |
+| **CANN Toolkit** | 昇腾算子库 | 安装 `.run` 包 |
 | **训练代码** | 用户的训练脚本 | COPY 到镜像中 |
+
+### 断点续训镜像要求
+
+如果需要使用断点续训功能（Pod 级别重调度、进程级别重调度、优雅容错），镜像还需安装以下组件：
+
+| 组件 | 说明 | 必选 | 适用场景 |
+|------|------|------|----------|
+| **TaskD** | 训练进程管理组件，支持进程级故障检测和恢复 | 是 | Pod 级别重调度、进程级别重调度 |
+| **MindIO TTP** | 故障容错通信组件，协调故障恢复流程 | 是 | 进程级别重调度、优雅容错 |
+| **MindIO ACP** | 异步 Checkpoint 保存加速 | 可选 | 大模型 Checkpoint 快速保存/加载 |
+
+安装命令（参考官方文档）：
+
+```dockerfile
+# PyTorch 框架：安装 TaskD + MindIO TTP + patch torch
+RUN pip install taskd-*.whl && \
+    pip install mindio_ttp-*.whl && \
+    sed -i '/import os/i import taskd.python.adaptor.patch' \
+        $(pip3 show torch | grep Location | awk -F ' ' '{print $2}')/torch/distributed/run.py
+
+# MindSpore 框架：安装 TaskD + MindIO TTP（不需要 patch）
+RUN pip install mindio_ttp-*.whl --target=$(pip show mindspore | awk '/Location:/ {print $2}') && \
+    pip install taskd-*.whl
+
+# 可选：MindIO ACP（两种框架通用）
+RUN pip install mindio_acp-*.whl
+```
+
+::: warning PyTorch 必须 patch
+PyTorch 框架下，`sed` patch 命令是**必须**的，它会在 `torch/distributed/run.py` 中注入 TaskD 适配代码。MindSpore 框架不需要此步骤。
+:::
+
+### 平台提供的训练镜像
+
+平台源码中提供了训练镜像的 Dockerfile，位于 `backend/docker/training/` 目录：
+
+| 镜像 | Dockerfile | 说明 |
+|------|-----------|------|
+| **PyTorch (MindSpeed-LLM)** | `training/pytorch/Dockerfile` | 完整构建，基于 Ubuntu 20.04 |
+| **PyTorch 轻量版** | `training/pytorch/Dockerfile.light` | 基于官方预构建镜像，只需下载 TaskD + MindIO TTP |
+| **MindSpore (MindFormers)** | `training/mindspore/Dockerfile` | 完整构建，基于 Ubuntu 20.04 |
+
+轻量版 Dockerfile 基于华为官方 `mindspeed-llm` 预构建镜像，只需额外下载 2-3 个 whl 包即可构建。
 
 ### 镜像中**不要**安装的内容
 
