@@ -39,7 +39,7 @@ export default withMermaid(
       nav: [
         { text: '首页', link: '/' },
         { text: '用户指南', link: '/guide/overview' },
-        { text: '快速开始', link: '/quickstart/quickstart' },
+        { text: '快速开始', link: '/quickstart/' },
         { text: '管理员指南', link: '/admin/users' },
       ],
 
@@ -123,7 +123,27 @@ export default withMermaid(
           {
             text: '快速开始',
             items: [
-              { text: '快速开始指南', link: '/quickstart/quickstart' },
+              { text: '概述', link: '/quickstart/' },
+              { text: '环境配置', link: '/quickstart/environment' },
+            ],
+          },
+          {
+            text: '训练实例',
+            items: [
+              { text: 'YOLO 分布式训练', link: '/quickstart/yolo-training' },
+              { text: 'MindsSpeed LLM 训练', link: '/quickstart/mindspeed-training' },
+            ],
+          },
+          {
+            text: '推理实例',
+            items: [
+              { text: 'VLLM 分布式推理', link: '/quickstart/vllm-inference' },
+            ],
+          },
+          {
+            text: '帮助',
+            items: [
+              { text: '常见问题排查', link: '/quickstart/troubleshooting' },
             ],
           },
         ],
