@@ -205,7 +205,7 @@ ktp logs <任务ID> --follow
 | 深入了解开发环境 | [开发环境详细指南](/guide/environments) |
 | 深入了解训练任务 | [训练任务详细指南](/guide/training-jobs) |
 | 使用命令行工具 | [命令行工具 (ktp)](/guide/cli) |
-| 学习分布式训练示例 | [快速开始教程](/quickstart/quickstart) |
+| 学习分布式训练示例 | [快速开始教程](/quickstart/) |
 | 了解平台架构 | [系统架构](/guide/architecture) |
 | 管理SSH密钥 | [设置 > SSH公钥](/guide/settings#ssh-公钥管理) |
 | 遇到问题 | [常见问题](/guide/faq) |

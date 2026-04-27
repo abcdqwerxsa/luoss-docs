@@ -11,7 +11,7 @@ hero:
   actions:
     - theme: brand
       text: 使用教程
-      link: /quickstart/quickstart
+      link: /quickstart/
     - theme: alt
       text: 系统架构
       link: /guide/architecture
@@ -42,7 +42,7 @@ features:
 |----------|------|
 | [用户指南](/guide/overview) | 平台功能使用教程 |
 | [管理员指南](/admin/users) | 平台管理和运维指南 |
-| [使用教程](/quickstart/quickstart) | 提供简单demo |
+| [使用教程](/quickstart/) | 提供简单demo |
 
 ## 版本信息
 
