@@ -98,3 +98,64 @@ fetch('http://10.1.30.201:8005/v1/chat/completions', {
 | `stream` | boolean | 是否开启流式返回，默认为 `false` |
 | `temperature` | float | 采样温度，控制生成结果的随机性 |
 | `max_tokens` | integer | 最大生成的 token 数量 |
+
+## Responses API
+
+Responses API 是一个更现代的接口，支持文本、图像等多种输入，并能更好地集成工具调用。
+
+- **Endpoint**: `http://10.1.30.201:8005/v1/responses`
+
+### cURL 示例
+
+```bash
+curl http://10.1.30.201:8005/v1/responses \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek_v4",
+    "input": "写一个关于独角兽的三句话睡前故事。"
+  }'
+```
+
+### Python 调用
+
+```python
+import requests
+
+url = "http://10.1.30.201:8005/v1/responses"
+payload = {
+    "model": "deepseek_v4",
+    "input": "写一个关于独角兽的三句话睡前故事。"
+}
+headers = {"Content-Type": "application/json"}
+
+response = requests.post(url, json=payload, headers=headers)
+print(response.json())
+```
+
+### TypeScript 调用
+
+```typescript
+async function createResponse() {
+  const response = await fetch('http://10.1.30.201:8005/v1/responses', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'deepseek_v4',
+      input: '写一个关于独角兽的三句话睡前故事。',
+    }),
+  });
+
+  const data = await response.json();
+  console.log(data);
+}
+
+createResponse();
+```
+
+## 常见问题
+
+- **鉴权**: 目前平台接口在内网环境下默认不需要 API Key，如果 SDK 要求必填，请填写 `none` 或任意字符串。
+- **模型可用性**: 请确保请求的 `model` 参数与平台部署的模型 ID 一致。
+
