@@ -8,8 +8,6 @@
 
 选择前端提交方式，参考下图操作：
 
-![](images/17.png)
-
 ![](images/task-vllm.png)
 
 ## 启动命令
@@ -17,7 +15,7 @@
 ```bash
 bash /models/share/Qwen3.5-122B-A10B/start_master.sh   # master 任务启动命令
 bash /models/share/Qwen3.5-122B-A10B/start_worker.sh   # worker 任务启动命令
-ccr.ccs.tencentyun.com/jett2245/vllm-ascend:qwen3_5-v0-a3              # 镜像路径
+10.1.30.201:31443/user-cdy-normal/vllm-ascend:qwen3.5             # 镜像路径
 ```
 
 ## 终端提交
@@ -27,10 +25,10 @@ ccr.ccs.tencentyun.com/jett2245/vllm-ascend:qwen3_5-v0-a3              # 镜像�
 ktp queues
 
 # 只需要修改 queue 对应参数即可
-vi /models/share/task/Qwen3.5-122B-A10B.yaml
+vi /models/share/task/cdy/Qwen3.5-122B-A10B.yaml
 
 # 提交任务
-ktp submit -f /models/share/task/Qwen3.5-122B-A10B.yaml
+ktp submit -f /models/share/task/cdy/Qwen3.5-122B-A10B.yaml
 
 # 提交后可以观察任务情况
 ktp list
@@ -50,14 +48,15 @@ ktp logs 899 --follow
 进入 master 节点的终端运行以下命令：
 
 ```bash
-curl http://localhost:8010/v1/completions \
--H "Content-Type: application/json" \
--d '{
-    "prompt": "你是什么模型，你的参数量大小是多少，介绍一下你的功能",
-    "path": "/path/to/model/Qwen3.5-35B-A3B/",
-    "max_tokens": 100,
-    "temperature": 0
-}'
+curl http://localhost:8010/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "qwen3.5",
+    "messages": [
+      {"role": "user", "content": "9.11 和 9.8 哪个数字更大？请一步步推理。"}
+    ],
+    "chat_template_kwargs": {"thinking": true}
+  }'
 ```
 
 ### 吞吐测试
@@ -69,7 +68,7 @@ vllm bench serve \
 --backend vllm \
 --base-url http://localhost:8010 \
 --model qwen3.5 \
---tokenizer /mnt/model/corlorlight_models/Qwen3.5-122B-A10B \
+--tokenizer /models/share/Qwen3.5-122B-A10B \
 --dataset-name random \
 --num-prompts 10 \
 --request-rate inf \

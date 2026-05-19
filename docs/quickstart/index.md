@@ -4,8 +4,10 @@
 
 - [开发环境配置](./environment)
 - [环境变量配置](./environment#环境变量配置)
-- [基于 MindsSpeed LLM 启动 Qwen-2.5-7b 分布式训练实例](./mindspeed-training)
-- [基于 VLLM-Ascend 启动 Qwen-3.5-1222B-A10B 分布式推理实例](./vllm-inference)
+- [基于 MindsSpeed LLM 启动 Qwen-2.5-7b 分布式训练实例](./Qwen-2.5-7b-training)
+- [基于 MindsSpeed LLM 启动 DeepSeek-V4-Flash 分布式训练实例](./deepseek-v4-flash-training)
+- [基于 VLLM-Ascend 启动 Qwen-3.5-122B-A10B 分布式推理实例](./Qwen-3.5-122B-A10B-inference)
+- [基于 VLLM-Ascend 启动 DeepSeek-V4-Flash 分布式推理实例](./deepseek-v4-flash-inference)
 - [常见问题排查](./troubleshooting)
 
 ## 申请账号
@@ -51,5 +53,3 @@
 | 场景 | 推荐阅读 |
 |------|---------|
 | 首次使用 | [环境变量配置](./environment) |
-| LLM 分布式训练 | [MindsSpeed LLM 训练](./mindspeed-training) |
-| 模型推理服务 | [VLLM 推理](./vllm-inference) |

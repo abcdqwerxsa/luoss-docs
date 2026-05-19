@@ -132,13 +132,15 @@ export default withMermaid(
           {
             text: '训练实例',
             items: [
-              { text: 'MindsSpeed LLM 训练', link: '/quickstart/mindspeed-training' },
+              { text: 'Qwen-2.5-7b 训练', link: '/quickstart/Qwen-2.5-7b-training' },
+              { text: 'DeepSeek-V4-Flash 训练', link: '/quickstart/deepseek-v4-flash-training' },
             ],
           },
           {
             text: '推理实例',
             items: [
-              { text: 'VLLM 分布式推理', link: '/quickstart/vllm-inference' },
+              { text: 'Qwen-3.5-122B-A10B 推理', link: '/quickstart/Qwen-3.5-122B-A10B-inference' },
+              { text: 'DeepSeek-V4-Flash 推理', link: '/quickstart/deepseek-v4-flash-inference' },
             ],
           },
           {
