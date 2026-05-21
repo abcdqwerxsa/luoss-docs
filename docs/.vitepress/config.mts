@@ -58,6 +58,7 @@ export default withMermaid(
             items: [
               { text: '系统架构', link: '/guide/architecture' },
               { text: '安全指南', link: '/guide/security' },
+              { text: '算力使用规则', link: '/guide/compute-rules' },
             ],
           },
           {
