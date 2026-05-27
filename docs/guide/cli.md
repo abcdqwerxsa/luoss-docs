@@ -62,6 +62,16 @@ ktp submit \
   --npu 8 \
   --max-runtime 1440 \
   -c "python train.py"
+
+# 启用 Pod 间免密 SSH（仅 acjob）
+ktp submit \
+  --name distributed-ssh \
+  --image pytorch:2.1 \
+  --npu 8 \
+  --replicas 4 \
+  --max-runtime 1440 \
+  --enable-ssh \
+  -c "python train.py"
 ```
 
 ::: tip 镜像标签
@@ -89,6 +99,7 @@ max_runtime_minutes: 1440
 env:
   LEARNING_RATE: "0.001"
   BATCH_SIZE: "32"
+enable_ssh: false              # 可选，启用 Pod 间免密 SSH（仅 acjob 生效）
 ```
 
 提交：
@@ -115,6 +126,7 @@ ktp submit -f job.yaml
 | `--queue` | | 队列名称（使用 `ktp queues` 查看可用队列） |
 | `--max-runtime` | | 最大运行时长（分钟） |
 | `--env` | | 环境变量（`KEY=VALUE`，可重复指定） |
+| `--enable-ssh` | | 启用 Pod 间免密 SSH（仅 acjob 生效） |
 | `--dry-run` | | 仅校验，不提交 |
 
 ::: info 优先级与项目编号
@@ -461,6 +473,9 @@ resumable_training:
   fault_scheduling: grace
   fault_retry_times: 3
   termination_grace_period: 300
+
+# Pod 间免密 SSH（可选，仅 acjob 生效）
+enable_ssh: true               # 开启后自动在 Pod 中安装 sshd，支持 Pod 间免密 SSH
 ```
 
 ::: info 优先级与项目编号说明

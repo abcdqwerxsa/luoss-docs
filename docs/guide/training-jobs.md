@@ -16,6 +16,7 @@
 | **框架选择** | 支持 PyTorch、TensorFlow、MindSpore |
 | **运行时长限制** | 设置任务最大运行时间 |
 | **搜索排序** | 按任务名、队列、状态快速检索和排序 |
+| **Pod 间 SSH** | 多 Pod 任务可开启免密 SSH，支持 Pod 间直接通信 |
 | **断点续训** | 训练任务故障中断后自动恢复，支持 force/grace 两种模式 |
 | **Checkpoint** | 支持训练断点保存和恢复 |
 
@@ -160,6 +161,45 @@ deepspeed train.py --deepspeed_config ds_config.json
 - 副本数
 - CPU/内存/NPU
 - 启动命令
+
+### Pod 间免密 SSH
+
+在自定义多任务模式（acjob）中，可以开启 **Pod 间 SSH** 开关，启用后所有 Pod 之间可以免密 SSH 通信。
+
+| 项目 | 说明 |
+|------|------|
+| **适用模式** | 自定义多任务模式（acjob） |
+| **前端开关** | Task 配置卡片中的「Pod 间 SSH」开关 |
+| **CLI 参数** | `--enable-ssh` |
+| **YAML 字段** | `enable_ssh: true` |
+| **启动耗时** | 增加约 10-30 秒（自动安装 openssh-server） |
+
+开启后系统会自动完成以下操作：
+
+1. 生成 RSA 密钥对，创建 SSH Secret
+2. 将密钥挂载到每个 Pod 的 `/root/.ssh` 目录
+3. 自动安装 `openssh-client` 和 `openssh-server`（如镜像中未预装）
+4. 启动 `sshd` 进程，配置免密登录
+5. 配置 SSH 客户端（`StrictHostKeyChecking no`），Pod 间可直接使用 IP 地址 SSH
+
+使用示例：
+
+```bash
+# 在 Pod 中查看其他 Pod IP
+ktp pods <任务ID>
+
+# 直接 SSH 到其他 Pod
+ssh root@10.250.122.222
+
+# 无需输入密码，直接进入远程 Pod
+```
+
+::: warning 注意事项
+- 仅 acjob（自定义多任务模式）支持此功能
+- 开启后会增加约 10-30 秒的 Pod 启动时间（用于安装 sshd）
+- 不需要 SSH 的任务请勿开启，以免浪费时间
+- SSH 密钥由平台自动生成和管理，任务删除时自动清理
+:::
 
 ### 环境变量
 分布式训练自动注入：
@@ -936,6 +976,13 @@ A: 常见原因：
 
 ### Q: 分布式训练节点间通信失败？
 A: 检查网络策略是否允许 Pod 间通信。
+
+### Q: Pod 间 SSH 连不上？
+A: 检查以下几点：
+1. 确认创建任务时已开启「Pod 间 SSH」开关
+2. 仅 acjob（自定义多任务模式）支持 Pod 间 SSH
+3. 使用 `ktp pods <任务ID>` 查看目标 Pod 的 IP 地址
+4. SSH 等待时间较长可能是 sshd 安装中，等待约 30 秒后重试
 
 ### Q: 为什么我无法选择队列？
 A: 如果您的用户角色为"普通用户"（normal），系统会固定使用 `normal-queue` 共享队列，队列和优先级选项被禁用。请联系管理员了解角色分配。
