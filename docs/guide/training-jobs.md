@@ -105,12 +105,25 @@ python train.py --config config.yaml
 ### 分布式训练
 
 ```bash
-# 使用 torchrun
+# 使用 torchrun（多节点分布式训练需先初始化环境）
+source /models/share/init_env.sh
 torchrun --nproc_per_node=4 train.py
 
 # 使用 deepspeed
 deepspeed train.py --deepspeed_config ds_config.json
 ```
+
+::: warning 多节点分布式训练环境初始化
+使用 `torchrun` 进行**多节点分布式训练**时，平台自动注入的 `MASTER_ADDR` 不能直接使用，必须先执行以下命令初始化正确的分布式环境变量：
+
+```bash
+source /models/share/init_env.sh
+```
+
+该脚本会设置正确的 `MASTER_IP`（即 `MASTER_ADDR`）、`MASTER_PORT`、`TOTAL_NODES`、`CURRENT_NODE_RANK` 等变量。**单节点多卡训练不需要执行此命令**。
+
+详见 [环境变量配置](/quickstart/environment#分布式训练环境变量)。
+:::
 
 ## 分布式训练
 
@@ -211,6 +224,16 @@ ssh root@10.250.122.222
 | `WORLD_SIZE` | 总进程数 |
 | `MASTER_ADDR` | 主节点地址 |
 | `MASTER_PORT` | 主节点端口 |
+
+::: warning MASTER_ADDR 与 torchrun
+平台自动注入的 `MASTER_ADDR` 在多节点分布式训练中**不能直接用于 `torchrun`**。如需使用 `torchrun` 进行多节点分布式训练，请先执行：
+
+```bash
+source /models/share/init_env.sh
+```
+
+该脚本会覆盖 `MASTER_ADDR` 为正确的值（通过 `MASTER_IP` 变量），并设置 `RANK`、`WORLD_SIZE` 等关键变量。详见 [环境变量配置](/quickstart/environment#分布式训练环境变量)。
+:::
 
 ### 分布式训练示例
 

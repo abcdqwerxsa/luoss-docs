@@ -19,6 +19,16 @@ bash /models/share/MindSpeed-LLM/start.sh                         # 启动命令
 docker.cnb.cool/nilpotenter/docker/codeserver-mindspeed:v1.0.5    # 镜像路径
 ```
 
+::: tip 多节点分布式训练环境初始化
+如需使用 `torchrun` 自行启动多节点分布式训练，平台自动注入的 `MASTER_ADDR` 不能直接使用，请先执行：
+
+```bash
+source /models/share/init_env.sh
+```
+
+该脚本会设置正确的 `MASTER_IP`、`MASTER_PORT`、`TOTAL_NODES`、`CURRENT_NODE_RANK` 等分布式训练环境变量。详见 [环境变量配置](./environment#分布式训练环境变量)。
+:::
+
 ## 终端提交
 
 ```bash
