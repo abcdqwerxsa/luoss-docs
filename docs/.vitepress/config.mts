@@ -77,6 +77,7 @@ export default withMermaid(
               { text: '使用统计', link: '/guide/my-usage' },
               { text: '站内信通知', link: '/guide/notifications' },
               { text: 'Web 终端', link: '/guide/web-terminal' },
+              { text: '端口服务', link: '/guide/port-service' },
               { text: '模型接口', link: '/guide/openai-api' },
               { text: 'Claude Code', link: '/guide/claude-code' },
               { text: '设置', link: '/guide/settings' },
