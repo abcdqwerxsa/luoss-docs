@@ -10,7 +10,10 @@ hero:
     alt: LuoSS Logo
   actions:
     - theme: brand
-      text: 使用教程
+      text: 用户指南
+      link: /guide/overview
+    - theme: alt
+      text: 使用案例
       link: /quickstart/
     - theme: alt
       text: 系统架构
