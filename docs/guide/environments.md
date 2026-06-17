@@ -111,18 +111,37 @@ Host luoss-env
    - Authentication type：OpenSSH config and authentication agent
 3. 测试连接并保存
 
-### SCP/SFTP 文件传输
+### SCP / SFTP / rsync 文件传输
+
+本地与开发环境之间可用 `scp`、`sftp`、`rsync` 传输文件，连接参数与 SSH 完全一致（同一堡垒机地址、端口、用户名）。
+
+::: tip 端口标志的大小写
+- `ssh` 用**小写** `-p` 指定端口；`scp` / `sftp` 用**大写** `-P`。
+- `rsync` 的端口是交给 ssh 处理的，所以仍是小写 `-p`，写在 `-e "ssh -p <端口>"` 里。
+:::
+
+`@` 前的用户名即**环境名**（见 [多环境路由](#多环境路由)），`root` 表示默认环境：
 
 ```bash
-# 上传文件到环境
-scp -P <端口> local_file.txt root@<服务器地址>:/models/
+# 上传单个文件
+scp -P <端口> 本地文件.txt <环境名>@<服务器地址>:/models/
 
 # 从环境下载文件
-scp -P <端口> root@<服务器地址>:/models/output.txt ./
+scp -P <端口> <环境名>@<服务器地址>:/models/output.txt ./
 
-# 上传整个目录
-scp -P <端口> -r local_dir/ root@<服务器地址>:/models/
+# 上传整个目录（-r 递归）
+scp -P <端口> -r 本地目录/ <环境名>@<服务器地址>:/models/
+
+# 交互式 SFTP（进入后用 ls / put / get）
+sftp -P <端口> <环境名>@<服务器地址>
+
+# rsync：增量、断点续传、带进度，同步整棵目录树首选
+rsync -av --progress -e "ssh -p <端口>" 本地目录/ <环境名>@<服务器地址>:/models/
 ```
+
+::: tip rsync 末尾斜杠
+`本地目录/`（带斜杠）表示同步目录**内容**到目标；`本地目录`（不带斜杠）表示在目标下新建一个同名子目录。与 `cp` 语义一致。
+:::
 
 ### 多环境路由
 
@@ -339,6 +358,22 @@ scp <用户名>@<调试节点地址>:/mnt/model/output.txt ./
    ssh-keygen -R "[<服务器地址>]:<端口>"
    ```
 5. 检查网络连接是否正常
+
+### scp / sftp 失败：subsystem request failed
+
+新版客户端（OpenSSH ≥ 9.0，含 Windows 自带的 `scp`）默认走 SFTP 协议传输，需要服务端开启 `Subsystem sftp`。出现 `subsystem request failed on channel 0` 通常说明目标环境还运行在**旧镜像**（未开启 SFTP 子系统，或未安装 `rsync`）。
+
+- **scp 临时救急**：加 `-O` 强制走老的 SCP 协议，不依赖子系统，新旧镜像都能用：
+
+```bash
+scp -O -P <端口> 本地文件.txt <环境名>@<服务器地址>:/models/
+```
+
+- **彻底修复**：在平台上对该环境执行**停止 → 启动**（重建 Pod 并重新拉取镜像）。若重启后依旧报错，说明节点缓存了同 tag 的旧镜像，请为镜像更换新 tag 后重新启动，或联系管理员强制重新拉取。
+
+::: warning sftp / rsync 无法用 -O 绕过
+`-O` 仅对 `scp` 有效。`sftp` 始终需要 `Subsystem sftp`，`rsync` 需要远端已安装 `rsync` 二进制——两者都必须使用已修复的新镜像。
+:::
 
 ### 环境一直处于 Creating 状态
 
