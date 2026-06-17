@@ -103,6 +103,7 @@ export default withMermaid(
               { text: '统计分析', link: '/admin/statistics' },
               { text: '计费管理', link: '/admin/billing' },
               { text: '审计日志', link: '/admin/audit' },
+              { text: 'SSH 会话审计', link: '/admin/ssh-sessions' },
               { text: '队列管理', link: '/admin/queues' },
               { text: '队列资源池', link: '/admin/queue-pool' },
               { text: '集群监控', link: '/admin/cluster' },
