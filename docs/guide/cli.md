@@ -127,6 +127,7 @@ ktp submit -f job.yaml
 | `--max-runtime` | | 最大运行时长（分钟） |
 | `--env` | | 环境变量（`KEY=VALUE`，可重复指定） |
 | `--enable-ssh` | | 启用 Pod 间免密 SSH（仅 acjob 生效） |
+| `--host-network` | | 启用宿主机网络（hostNetwork），单/多任务均生效 |
 | `--dry-run` | | 仅校验，不提交 |
 
 ::: info 优先级与项目编号
@@ -155,6 +156,35 @@ ktp queues
 ::: warning 队列权限
 `--queue` 参数仅接受 `ktp queues` 列表中显示的队列。尝试使用不可用的队列会被拒绝并提示可用列表。
 :::
+
+---
+
+## 查看公共镜像
+
+```bash
+# 列出平台所有公共镜像（输出完整引用，便于直接复制）
+ktp images
+
+# 仅输出镜像引用（每行一个，适合复制 / 脚本）
+ktp images -q
+
+# 按名称过滤
+ktp images -s pytorch
+
+# 按项目过滤
+ktp images --project library
+
+# JSON / YAML 输出
+ktp images -o json
+```
+
+默认以表格输出完整镜像引用（`registry/project/name:tag`），可直接复制到 `docker pull` 或训练任务的镜像字段。
+
+| 参数 | 缩写 | 说明 |
+|------|------|------|
+| `--quiet` | `-q` | 仅输出镜像引用（每行一个） |
+| `--search` | `-s` | 按名称/引用子串过滤 |
+| `--project` | | 按 Harbor 项目名过滤 |
 
 ---
 
@@ -476,6 +506,9 @@ resumable_training:
 
 # Pod 间免密 SSH（可选，仅 acjob 生效）
 enable_ssh: true               # 开启后自动在 Pod 中安装 sshd，支持 Pod 间免密 SSH
+
+# 宿主机网络（可选，单/多任务均生效）
+host_network: false            # 开启后 Pod 使用宿主机网络，适用于 RDMA/HCCL 等场景
 ```
 
 ::: info 优先级与项目编号说明
