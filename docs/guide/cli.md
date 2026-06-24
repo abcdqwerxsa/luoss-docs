@@ -128,6 +128,7 @@ ktp submit -f job.yaml
 | `--env` | | 环境变量（`KEY=VALUE`，可重复指定） |
 | `--enable-ssh` | | 启用 Pod 间免密 SSH（仅 acjob 生效） |
 | `--host-network` | | 启用宿主机网络（hostNetwork），单/多任务均生效 |
+| `--data-volume` | | 绑定数据盘 ID（独占式存储，仅单副本任务） |
 | `--dry-run` | | 仅校验，不提交 |
 
 ::: info 优先级与项目编号
