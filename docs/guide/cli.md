@@ -189,6 +189,31 @@ ktp images -o json
 
 ---
 
+## 查看数据盘
+
+```bash
+ktp volumes
+```
+
+列出当前用户的所有数据盘，包括 ID、名称、容量、状态和绑定信息。使用 `--data-volume <ID>` 提交训练任务时绑定数据盘，ID 从此命令获取。
+
+输出示例：
+
+```
+ID  NAME              SIZE       STATUS  BIND STATE
+--  ----              ----       ------  ----------
+3   模型转换输出盘     100 GiB    ready   free
+5   训练数据集         500 GiB    ready   bound (training: job-1719123456-abc)
+
+Total: 2 volume(s)
+
+Tip: use 'ktp submit --data-volume <ID>' to bind a volume to a training job.
+```
+
+详见 [数据盘](/guide/data-volumes)。
+
+---
+
 ## 分布式训练
 
 通过 `tasks` 字段配置多任务分布式训练：
