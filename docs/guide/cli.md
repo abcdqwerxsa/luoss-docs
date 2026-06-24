@@ -100,6 +100,8 @@ env:
   LEARNING_RATE: "0.001"
   BATCH_SIZE: "32"
 enable_ssh: false              # 可选，启用 Pod 间免密 SSH（仅 acjob 生效）
+host_network: false            # 可选，启用宿主机网络
+data_volume: 3                 # 可选，绑定数据盘 ID（用 ktp volumes 查看）
 ```
 
 提交：
@@ -535,6 +537,9 @@ enable_ssh: true               # 开启后自动在 Pod 中安装 sshd，支持 
 
 # 宿主机网络（可选，单/多任务均生效）
 host_network: false            # 开启后 Pod 使用宿主机网络，适用于 RDMA/HCCL 等场景
+
+# 数据盘绑定（可选，独占式存储，仅单副本任务）
+data_volume: 3                 # 数据盘 ID（使用 ktp volumes 查看），挂载到 /mnt/data
 ```
 
 ::: info 优先级与项目编号说明
