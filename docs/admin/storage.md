@@ -90,6 +90,27 @@
 上传到共享项目的镜像会自动出现在用户的 **公共镜像** 页面中。
 :::
 
+## 开发环境工作盘与 Longhorn 存储
+
+开发环境的**工作盘**就是用户的[数据盘](/guide/data-volumes)——一块 Longhorn RWO 持久卷，承载环境主目录的全量持久化（OverlayFS 可写层）。管理员侧需了解以下几点。
+
+### StorageClass
+
+- 默认 StorageClass 为 `dev-nvme-storage`（Longhorn，`reclaimPolicy: Retain`、`allowVolumeExpansion: true`），副本数由 `longhornStorage.numberOfReplicas` 控制（默认 3）。
+- **`parameters` 创建后不可变更**：K8s 禁止 patch StorageClass 的 `.parameters`，因此 helm chart 不会给已存在的默认 SC 追加 `dataLocality` / `replicaAutoBalance` 等参数。如需启用副本就近/自动重平衡，请在 **Longhorn 全局设置**中配置（`default-data-locality`、`replica-auto-balance`），不要手改 SC parameters，否则 `helm upgrade` 会报 `Forbidden: updates to parameters are forbidden`。
+- 可选第二 StorageClass：开启 `longhornStorage.secondClass.enabled` 会创建一个独立 SC（不同副本数）；把其名加入 `dataVolumes.availableStorageClasses` 后，用户创建数据盘时即可在下拉中选择。
+
+### 配额
+
+- 工作盘容量计入数据盘的每用户 2 TiB 配额（`dataVolumes.quotaGiB`）。开发环境工作盘默认 200 GiB；若用户工作盘 + 训练数据盘合计超限，按需上调配额。
+- 工作盘支持在线扩容（Longhorn `allowVolumeExpansion`），无需重启环境。
+
+### 环境健康巡检（StorageDegraded）
+
+- 开启 `environment_health.enabled=true` 后，后台巡检会检测工作盘 attach 失败、卡在 `ContainerCreating` 的环境，自动置 **StorageDegraded** 可见状态，让用户无需干等节点恢复（详见 [故障排查](/admin/troubleshooting)）。
+- 关键参数：`stuck_minutes`（卡住判定阈值，默认 8 分钟）、`reconcile_interval_seconds`（巡检间隔，默认 90 秒）。
+- 默认关闭，按需在部署配置中开启。
+
 ## 相关链接
 
 - [用户管理](/admin/users)
