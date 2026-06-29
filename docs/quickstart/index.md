@@ -8,6 +8,7 @@
 - [基于 MindsSpeed LLM 启动 DeepSeek-V4-Flash 分布式训练实例](./deepseek-v4-flash-training)
 - [基于 VLLM-Ascend 启动 Qwen-3.5-122B-A10B 分布式推理实例](./Qwen-3.5-122B-A10B-inference)
 - [基于 VLLM-Ascend 启动 DeepSeek-V4-Flash 分布式推理实例](./deepseek-v4-flash-inference)
+- [基于 VLLM-Ascend 启动 DeepSeek-V4-Pro 分布式推理实例](./deepseek-v4-pro-inference)
 - [常见问题排查](./troubleshooting)
 
 ## 申请账号
