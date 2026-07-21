@@ -1,6 +1,6 @@
 # ktp 命令行工具
 
-`ktp` 是平台内置的命令行工具，可在开发环境容器内直接提交和管理训练任务，提供与前端同等的功能，并支持 YAML 配置文件、模板管理、批量提交、实时日志流等高级特性。
+`ktp` 是平台内置的命令行工具，可在开发环境容器内直接提交和管理训练任务，提供与前端同等的功能与字段校验，并支持 YAML 配置文件、模板管理、批量提交、实时日志流等高级特性。
 
 <FeatureBadge status="stable" />
 
@@ -39,7 +39,7 @@ ktp submit --help
 # 查看可用队列
 ktp queues
 
-# 提交任务（自动使用个人队列）
+# 提交任务（队列由系统按身份自动派生，无需指定）
 ktp submit \
   --name my-training \
   --image pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime \
@@ -51,17 +51,6 @@ ktp submit \
   --max-runtime 1440 \
   --env LEARNING_RATE=0.001 \
   --env BATCH_SIZE=32
-
-# 指定项目队列
-ktp submit \
-  --name my-training \
-  --image pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime \
-  --queue project-xxx-queue \
-  --cpu 4 \
-  --memory 16Gi \
-  --npu 8 \
-  --max-runtime 1440 \
-  -c "python train.py"
 
 # 启用 Pod 间免密 SSH（仅 acjob）
 ktp submit \
@@ -94,7 +83,6 @@ resources:
   memory: "16Gi"
   npu: 8
   replicas: 1
-queue: normal-queue
 max_runtime_minutes: 1440
 env:
   LEARNING_RATE: "0.001"
@@ -125,20 +113,49 @@ ktp submit -f job.yaml
 | `--memory` | | 内存（如 `16Gi`） |
 | `--npu` | | NPU 数量 |
 | `--replicas` | | Pod 副本数 |
-| `--queue` | | 队列名称（使用 `ktp queues` 查看可用队列） |
-| `--max-runtime` | | 最大运行时长（分钟） |
+| `--min-available` | | 最小可用 Pod 数（Volcano minAvailable，仅单任务模式） |
+| `--max-runtime` | | 最大运行时长（分钟，必填，≤ 129600） |
 | `--env` | | 环境变量（`KEY=VALUE`，可重复指定） |
 | `--enable-ssh` | | 启用 Pod 间免密 SSH（仅 acjob 生效） |
 | `--host-network` | | 启用宿主机网络（hostNetwork），单/多任务均生效 |
 | `--data-volume` | | 绑定数据盘 ID（独占式存储，仅单副本任务） |
 | `--dry-run` | | 仅校验，不提交 |
 
-::: info 优先级与项目编号
-优先级由系统根据用户角色自动设置，无需手动指定。项目编号在您选择项目队列时自动关联，无需手动输入。这与前端行为一致。
+::: info 优先级 / 队列 / 项目编号
+优先级和队列均由系统根据用户角色与身份自动设置，`ktp` 不提供手动指定参数；项目编号已不再使用（项目队列已下线，所有 NPU 额度叠加到个人队列）。任务用途请用 YAML 的 `purpose` 字段标记，详见下文「字段校验与约束」。
 :::
 
 ::: tip 优先级规则
 命令行参数会覆盖 YAML 配置文件中的同名字段。建议将常用配置写入 YAML，仅通过命令行覆盖变化的参数。
+:::
+
+---
+
+## 字段校验与约束
+
+为了与前端表单和后端校验保持一致，`ktp submit`、`ktp batch submit`、`ktp template apply` 在提交前会统一执行字段校验，不合法的请求会被直接拒绝，无需等待后端返回错误：
+
+| 校验项 | 规则 |
+|--------|------|
+| 任务名称 `name` | 必填，非空，长度 ≤ 100 |
+| 镜像 `image` | 单任务模式必填（多任务可由各 task 自带镜像） |
+| 最大运行时长 `max_runtime_minutes` | 必填，> 0 且 ≤ 129600（3 个月） |
+| 单任务 NPU `resources.npu` | 必须为 `[0, 2, 4, 6, 8, 10, 12, 14, 16]` 之一 |
+| 多任务每 task NPU `tasks[].npu` | 必须为 `[2, 4, 6, 8, 10, 12, 14, 16]` 之一 |
+| 多任务结构 | 每个 task 的 `name` 必填且唯一；每个 task 须有 `image`（或提供顶层 image） |
+
+::: tip NPU 枚举
+NPU 数量受物理拓扑约束，只能选择 2 的倍数（0/2/4/…/16）；多任务模式下每个 task 至少 2 卡。这与前端下拉选项完全一致。
+:::
+
+::: info 任务用途（purpose）
+`purpose` 是纯统计标签（用于卡时统计仪表盘的「个人 / 项目 / 科研中心」分类），不影响调度、配额或队列。仅支持通过 YAML 设置，命令行无对应参数；未设置时默认 `personal`：
+
+```yaml
+purpose: project       # personal | project
+project: my-project    # purpose=project 时填项目名称，服务端解析为 ID 并校验成员资格
+```
+
 :::
 
 ---
@@ -149,15 +166,13 @@ ktp submit -f job.yaml
 ktp queues
 ```
 
-显示当前用户可用的所有队列，包括个人队列和项目队列：
+显示当前用户可用的队列及其 NPU 配额使用情况：
 
-- **个人队列**：`user-{username}-compute`，资源由系统动态分配
-- **项目队列**：项目专属队列，有固定资源保证
+- 普通用户：`normal-queue`（共享队列，固定）
+- 其他用户：`user-{username}-compute`（个人队列，含项目叠加额度）
 
-输出包含每个队列的 NPU 配额使用情况和项目编号（仅项目队列）。
-
-::: warning 队列权限
-`--queue` 参数仅接受 `ktp queues` 列表中显示的队列。尝试使用不可用的队列会被拒绝并提示可用列表。
+::: info 队列自动派生
+提交任务时无需、也无法选择队列——后端会按您的身份自动派生，并在服务端强制校验队列归属，因此不会提交到他人队列。`ktp queues` 仅用于查看配额使用情况。
 :::
 
 ---
@@ -224,7 +239,6 @@ Tip: use 'ktp submit --data-volume <ID>' to bind a volume to a training job.
 name: distributed-training
 framework: PyTorch
 image: pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
-queue: normal-queue
 max_runtime_minutes: 2880
 tasks:
   - name: master
@@ -264,7 +278,6 @@ name: resumable-training
 framework: PyTorch
 image: pytorch/pytorch:2.1.0
 command: "python train.py"
-queue: normal-queue
 max_runtime_minutes: 4320
 resumable_training:
   enabled: true
@@ -498,12 +511,16 @@ resources:
   cpu: "4"
   memory: "16Gi"
   gpu: 0
-  npu: 8
+  npu: 8                        # 单 Pod NPU 数，必须为 [0,2,4,6,8,10,12,14,16] 之一
   replicas: 1
+  min_available: 1              # 可选，最小可用 Pod 数（Volcano minAvailable，仅单任务模式）
 
-# 调度配置
-queue: normal-queue             # 队列名称（使用 ktp queues 查看可用队列）
-max_runtime_minutes: 1440       # 必填，最大运行时长（分钟）
+# 运行时长
+max_runtime_minutes: 1440       # 必填，最大运行时长（分钟），≤ 129600（3 个月）
+
+# 任务用途（可选，统计标签，不影响调度）
+purpose: personal               # personal（个人探索，默认）| project（平台项目）
+project: my-project             # purpose=project 时填项目名称，服务端解析为 ID 并校验成员资格
 
 # 环境变量
 env:
@@ -542,10 +559,11 @@ host_network: false            # 开启后 Pod 使用宿主机网络，适用于
 data_volume: 3                 # 数据盘 ID（使用 ktp volumes 查看），挂载到 /mnt/data
 ```
 
-::: info 优先级与项目编号说明
-- **优先级**：由系统根据用户角色自动设置，YAML 和命令行中均不支持手动指定
-- **项目编号**：选择项目队列时自动关联，YAML 和命令行中均不支持手动指定
-- 这两个限制与前端界面行为保持一致
+::: info 优先级 / 队列 / 项目编号说明
+- **优先级**：由系统根据用户角色自动设置，YAML 和命令行均不支持手动指定
+- **队列**：由后端按用户身份自动派生并强制校验归属，不支持手动指定（`queue` 字段已移除）
+- **项目编号**：不再使用（项目队列已下线）
+- 任务用途请用 `purpose` / `project` 字段标记（仅 YAML，用于卡时统计）
 :::
 
 ---
@@ -567,9 +585,9 @@ Token 可能已过期。请联系管理员或重启开发环境获取新 token�
 
 命令行参数优先级高于 YAML 配置文件。当两者同时指定时，以命令行参数为准。
 
-### Q: 提交任务时提示队列不可用？
+### Q: 能否指定提交到某个队列？
 
-使用 `ktp queues` 查看当前可用的队列列表。`--queue` 参数仅接受列表中显示的队列名称。如果不指定 `--queue`，系统默认使用您的个人队列。
+不能。队列由后端按您的用户身份自动派生（普通用户 → `normal-queue`，其他用户 → 个人队列 `user-{username}-compute`），`ktp` 不再提供 `--queue` 参数，后端也会强制校验队列归属，因此不会提交到他人队列。`ktp queues` 仅用于查看配额使用情况。
 
 ### Q: 镜像地址中的标签被重复添加？
 
