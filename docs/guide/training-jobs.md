@@ -907,6 +907,13 @@ model.save(os.path.join(output_path, "model.pt"))
 
 ## 查看日志
 
+::: warning 任务日志保留期限（7 天）
+平台对**已完成（Completed / Failed / Terminated）的训练任务**设置 **7 天（604800 秒）保留期**：
+- vcjob（单任务模式）与 acjob（自定义多任务模式）均通过 `ttlSecondsAfterFinished` 应用该保留期。
+- **保留期满后，Kubernetes 会自动清理对应的 Job 及 Pod 资源**，届时将**无法再查看或下载该任务的日志**——实时日志、`kubectl logs` 均会失效。
+- 若任务日志较为重要，请**在保留期内主动持久化保存**，以免到期后丢失关键信息（见下方「日志持久化」）。
+:::
+
 ### 实时日志
 
 1. 点击任务名称进入详情页
@@ -915,9 +922,23 @@ model.save(os.path.join(output_path, "model.pt"))
 ### 下载日志
 
 ```bash
-# 使用 kubectl 下载日志
+# 使用 kubectl 下载日志（需在保留期内、Pod 尚未被自动清理时执行）
 kubectl logs <pod-name> -n user-<username> > training.log
 ```
+
+### 日志持久化（建议）
+
+任务到期清理后日志不可恢复，建议在训练过程中主动把关键日志写入**持久存储**（数据盘 `/mnt/data` 或 `/models/output`，这些路径在任务停止/删除后仍然保留）：
+
+```bash
+# 1. 训练过程中边输出边落盘（推荐）
+python train.py 2>&1 | tee /models/output/train-$(date +%Y%m%d-%H%M%S).log
+
+# 2. 任务完成后、保留期内，导出 Pod 日志到持久目录
+kubectl logs <pod-name> -n user-<username> > /models/output/training.log
+```
+
+> 💡 也可在训练镜像中接入日志采集（写文件后定期上传到对象存储 / 日志服务），实现日志的长期归档与检索。
 
 ## 性能优化
 
@@ -1006,6 +1027,9 @@ A: 可能是集群资源不足或优先级较低，可降低资源配置或等�
 
 ### Q: 训练输出在哪里？
 A: 所有输出保存在 `/models/output` 目录。
+
+### Q: 之前完成的任务，为什么日志看不到了？
+A: 已完成（Completed / Failed / Terminated）的训练任务保留 **7 天**（`ttlSecondsAfterFinished = 604800`），到期后 Kubernetes 会自动清理对应的 Job 与 Pod，届时实时日志、`kubectl logs` 都将失效且不可恢复。建议在保留期内把重要日志写入持久目录（`/models/output` 或 `/mnt/data`），详见 [查看日志](#查看日志)。
 
 ### Q: 如何恢复中断的训练？
 A: 从最新的 checkpoint 恢复，需要代码支持 checkpoint 加载逻辑。开启断点续训后，任务异常中断会自动重启并从 checkpoint 继续。
