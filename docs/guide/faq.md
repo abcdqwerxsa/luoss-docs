@@ -82,6 +82,34 @@ Host luoss-env
 
 ---
 
+## Docker 相关（DinD）
+
+### Q: 开发环境里的 Docker 是怎么运行的？
+
+**A**: 开发环境通过 **Docker-in-Docker（DinD）** 提供 Docker 能力——在开发环境容器内部再运行一个独立的 Docker 守护进程。你在环境里执行 `docker run`、`docker build` 启动的容器，都是跑在这个内嵌守护进程上的**嵌套容器**，并不直接运行在集群节点宿主机上。详见 [开发环境 - 存储管理](/guide/environments#存储管理)。
+
+### Q: `docker run` 启动的容器，数据写到哪了？会保留吗？
+
+**A**: 写在**临时存储**上，**不会保留**。`docker run` 容器落在节点 ephemeral storage（单环境当前限额 **100 GiB**）上，容器删除或开发环境重建后会自动释放。请勿把任何需要保留的数据放进 `docker run` 容器内——重要数据请写到 `/mnt/host-model`。
+
+### Q: 为什么 `docker run -v` 挂载的目录和我在开发环境里看到的不一致？
+
+**A**: DinD 中的 Docker 守护进程与 SSH 登录后所处的文件系统视角不同，bind mount（`-v` / `--mount`）的源路径是按守护进程的视角解析的，因此直接挂载开发环境里的某些目录时，可能出现挂不上或挂到的内容与预期不符的情况。**推荐做法**：把要挂载进 docker 容器的数据放在 `/mnt/host-model` 下，并用该绝对路径作为挂载源：
+
+```bash
+# ✅ 推荐：用 /mnt/host-model 下的绝对路径挂载
+docker run -v /mnt/host-model/mydata:/data myimage
+
+# ❌ 不推荐：挂载开发环境内的相对/任意目录，可能视角不一致
+docker run -v ~/myproject:/workspace myimage
+```
+
+### Q: 能不能往 docker 容器里写大量文件？
+
+**A**: **不建议**，且应避开非 `/mnt/host-model` 的目录。`docker run` 容器的可写层、以及未挂载到 `/mnt/host-model` 的容器内目录，都占用 **100 GiB 临时存储**额度；写满会导致容器写入失败，严重时影响环境运行。数据集、模型、日志、训练产物等大文件一律放到 `/mnt/host-model`，再以挂载方式提供给容器访问，而不要写进容器自身的文件系统。
+
+---
+
 ## 训练任务相关
 
 ### Q: 任务一直处于 Pending 状态？
