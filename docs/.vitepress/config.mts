@@ -116,6 +116,7 @@ export default withMermaid(
             text: '调度配置',
             items: [
               { text: '优先级调度', link: '/admin/priority-scheduling' },
+              { text: '显存空闲清理', link: '/admin/gpu-idle-cleanup' },
             ],
           },
           {
