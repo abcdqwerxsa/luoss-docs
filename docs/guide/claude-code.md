@@ -31,7 +31,7 @@ npm install -g @anthropic-ai/claude-code
 
 ```bash
 # 设置 API 地址
-export ANTHROPIC_BASE_URL=http://10.1.21.21:3000
+export ANTHROPIC_BASE_URL=http://10.1.30.201:30300
 
 # 设置鉴权 Token
 export ANTHROPIC_AUTH_TOKEN="sk-8odN4WAQkkaff1abSVjlmKq9S5gxnt1DPdTqiBIQPuCx0ZAw"
@@ -68,6 +68,6 @@ claude
 
 ## 常见问题
 
-- **连接失败**：请确认环境变量 `ANTHROPIC_BASE_URL` 设置正确，且网络可以访问 `10.1.21.21:3000`。
+- **连接失败**：请确认环境变量 `ANTHROPIC_BASE_URL` 设置正确，且网络可以访问 `10.1.30.201:30300`。
 - **鉴权失败**：请确认 `ANTHROPIC_AUTH_TOKEN` 已设置为有效的 API Key。
 - **模型不可用**：请检查平台大模型服务状态，当前可用模型为 `deepseek-v4-flash` 和 `glm-5.1`。
