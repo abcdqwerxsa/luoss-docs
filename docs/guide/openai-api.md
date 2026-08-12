@@ -4,10 +4,10 @@ LuoSS 平台同时提供 OpenAI 和 Anthropic 兼容的 API 接口，方便用�
 
 ## 接口地址
 
-- **Base URL**: `http://10.1.21.21:3000`
-- **OpenAI Chat Completions**: `http://10.1.21.21:3000/v1/chat/completions`
-- **OpenAI Models**: `http://10.1.21.21:3000/v1/models`
-- **Anthropic Messages**: `http://10.1.21.21:3000/v1/messages`
+- **Base URL**: `http://10.1.30.201:30300`
+- **OpenAI Chat Completions**: `http://10.1.30.201:30300/v1/chat/completions`
+- **OpenAI Models**: `http://10.1.30.201:30300/v1/models`
+- **Anthropic Messages**: `http://10.1.30.201:30300/v1/messages`
 
 ## 可用模型
 
@@ -34,7 +34,7 @@ LuoSS 平台同时提供 OpenAI 和 Anthropic 兼容的 API 接口，方便用�
 您可以使用标准的 cURL 工具发送请求来验证接口：
 
 ```bash
-curl http://10.1.21.21:3000/v1/chat/completions \
+curl http://10.1.30.201:30300/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer sk-8odN4WAQkkaff1abSVjlmKq9S5gxnt1DPdTqiBIQPuCx0ZAw" \
   -d '{
@@ -53,7 +53,7 @@ curl http://10.1.21.21:3000/v1/chat/completions \
 import openai
 
 client = openai.OpenAI(
-    base_url="http://10.1.21.21:3000/v1",
+    base_url="http://10.1.30.201:30300/v1",
     api_key="sk-8odN4WAQkkaff1abSVjlmKq9S5gxnt1DPdTqiBIQPuCx0ZAw"
 )
 
@@ -75,7 +75,7 @@ print(response.choices[0].message.content)
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
-  baseURL: 'http://10.1.21.21:3000/v1',
+  baseURL: 'http://10.1.30.201:30300/v1',
   apiKey: 'sk-8odN4WAQkkaff1abSVjlmKq9S5gxnt1DPdTqiBIQPuCx0ZAw',
 });
 
@@ -94,7 +94,7 @@ main();
 或者使用原生 `fetch` API：
 
 ```javascript
-fetch('http://10.1.21.21:3000/v1/chat/completions', {
+fetch('http://10.1.30.201:30300/v1/chat/completions', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -125,12 +125,12 @@ fetch('http://10.1.21.21:3000/v1/chat/completions', {
 
 Responses API 是一个更现代的接口，支持文本、图像等多种输入，并能更好地集成工具调用。
 
-- **Endpoint**: `http://10.1.21.21:3000/v1/responses`
+- **Endpoint**: `http://10.1.30.201:30300/v1/responses`
 
 ### cURL 示例
 
 ```bash
-curl http://10.1.21.21:3000/v1/responses \
+curl http://10.1.30.201:30300/v1/responses \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer sk-8odN4WAQkkaff1abSVjlmKq9S5gxnt1DPdTqiBIQPuCx0ZAw" \
   -d '{
@@ -144,7 +144,7 @@ curl http://10.1.21.21:3000/v1/responses \
 ```python
 import requests
 
-url = "http://10.1.21.21:3000/v1/responses"
+url = "http://10.1.30.201:30300/v1/responses"
 payload = {
     "model": "deepseek-v4-flash",
     "input": "写一个关于独角兽的三句话睡前故事。"
@@ -162,7 +162,7 @@ print(response.json())
 
 ```typescript
 async function createResponse() {
-  const response = await fetch('http://10.1.21.21:3000/v1/responses', {
+  const response = await fetch('http://10.1.30.201:30300/v1/responses', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -190,7 +190,7 @@ createResponse();
 ### cURL 示例
 
 ```bash
-curl http://10.1.21.21:3000/v1/messages \
+curl http://10.1.30.201:30300/v1/messages \
   -H "Content-Type: application/json" \
   -H "x-api-key: sk-8odN4WAQkkaff1abSVjlmKq9S5gxnt1DPdTqiBIQPuCx0ZAw" \
   -H "anthropic-version: 2023-06-01" \
@@ -211,7 +211,7 @@ curl http://10.1.21.21:3000/v1/messages \
 import anthropic
 
 client = anthropic.Anthropic(
-    base_url="http://10.1.21.21:3000",
+    base_url="http://10.1.30.201:30300",
     api_key="sk-8odN4WAQkkaff1abSVjlmKq9S5gxnt1DPdTqiBIQPuCx0ZAw",
 )
 
@@ -234,7 +234,7 @@ print(message.content[0].text)
 import Anthropic from '@anthropic-ai/sdk';
 
 const client = new Anthropic({
-  baseURL: 'http://10.1.21.21:3000',
+  baseURL: 'http://10.1.30.201:30300',
   apiKey: 'sk-8odN4WAQkkaff1abSVjlmKq9S5gxnt1DPdTqiBIQPuCx0ZAw',
 });
 
@@ -254,7 +254,7 @@ main();
 或者使用原生 `fetch` API：
 
 ```javascript
-fetch('http://10.1.21.21:3000/v1/messages', {
+fetch('http://10.1.30.201:30300/v1/messages', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
