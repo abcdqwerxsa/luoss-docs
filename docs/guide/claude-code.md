@@ -34,7 +34,7 @@ npm install -g @anthropic-ai/claude-code
 export ANTHROPIC_BASE_URL=http://10.1.30.201:30300
 
 # 设置鉴权 Token
-export ANTHROPIC_AUTH_TOKEN="sk-8odN4WAQkkaff1abSVjlmKq9S5gxnt1DPdTqiBIQPuCx0ZAw"
+export ANTHROPIC_AUTH_TOKEN="sk-DNsGK59BSKBLpQDvF6eI81slAdYR8RgLLIapZwHTASXk454y"
 
 # 设置默认模型
 export ANTHROPIC_DEFAULT_OPUS_MODEL="deepseek-v4-flash"
