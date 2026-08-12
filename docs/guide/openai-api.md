@@ -20,8 +20,8 @@ LuoSS 平台同时提供 OpenAI 和 Anthropic 兼容的 API 接口，方便用�
 
 所有接口请求需要在 Header 中携带以下 API Key：
 
-- OpenAI 兼容接口：`Authorization: Bearer sk-8odN4WAQkkaff1abSVjlmKq9S5gxnt1DPdTqiBIQPuCx0ZAw`
-- Anthropic 兼容接口：`x-api-key: sk-8odN4WAQkkaff1abSVjlmKq9S5gxnt1DPdTqiBIQPuCx0ZAw`
+- OpenAI 兼容接口：`Authorization: Bearer sk-DNsGK59BSKBLpQDvF6eI81slAdYR8RgLLIapZwHTASXk454y`
+- Anthropic 兼容接口：`x-api-key: sk-DNsGK59BSKBLpQDvF6eI81slAdYR8RgLLIapZwHTASXk454y`
 
 ---
 
@@ -36,7 +36,7 @@ LuoSS 平台同时提供 OpenAI 和 Anthropic 兼容的 API 接口，方便用�
 ```bash
 curl http://10.1.30.201:30300/v1/chat/completions \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer sk-8odN4WAQkkaff1abSVjlmKq9S5gxnt1DPdTqiBIQPuCx0ZAw" \
+  -H "Authorization: Bearer sk-DNsGK59BSKBLpQDvF6eI81slAdYR8RgLLIapZwHTASXk454y" \
   -d '{
     "model": "deepseek-v4-flash",
     "messages": [
@@ -54,7 +54,7 @@ import openai
 
 client = openai.OpenAI(
     base_url="http://10.1.30.201:30300/v1",
-    api_key="sk-8odN4WAQkkaff1abSVjlmKq9S5gxnt1DPdTqiBIQPuCx0ZAw"
+    api_key="sk-DNsGK59BSKBLpQDvF6eI81slAdYR8RgLLIapZwHTASXk454y"
 )
 
 response = client.chat.completions.create(
@@ -76,7 +76,7 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI({
   baseURL: 'http://10.1.30.201:30300/v1',
-  apiKey: 'sk-8odN4WAQkkaff1abSVjlmKq9S5gxnt1DPdTqiBIQPuCx0ZAw',
+  apiKey: 'sk-DNsGK59BSKBLpQDvF6eI81slAdYR8RgLLIapZwHTASXk454y',
 });
 
 async function main() {
@@ -98,7 +98,7 @@ fetch('http://10.1.30.201:30300/v1/chat/completions', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer sk-8odN4WAQkkaff1abSVjlmKq9S5gxnt1DPdTqiBIQPuCx0ZAw',
+    'Authorization': 'Bearer sk-DNsGK59BSKBLpQDvF6eI81slAdYR8RgLLIapZwHTASXk454y',
   },
   body: JSON.stringify({
     model: 'deepseek-v4-flash',
@@ -132,7 +132,7 @@ Responses API 是一个更现代的接口，支持文本、图像等多种输入
 ```bash
 curl http://10.1.30.201:30300/v1/responses \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer sk-8odN4WAQkkaff1abSVjlmKq9S5gxnt1DPdTqiBIQPuCx0ZAw" \
+  -H "Authorization: Bearer sk-DNsGK59BSKBLpQDvF6eI81slAdYR8RgLLIapZwHTASXk454y" \
   -d '{
     "model": "deepseek-v4-flash",
     "input": "写一个关于独角兽的三句话睡前故事。"
@@ -151,7 +151,7 @@ payload = {
 }
 headers = {
     "Content-Type": "application/json",
-    "Authorization": "Bearer sk-8odN4WAQkkaff1abSVjlmKq9S5gxnt1DPdTqiBIQPuCx0ZAw",
+    "Authorization": "Bearer sk-DNsGK59BSKBLpQDvF6eI81slAdYR8RgLLIapZwHTASXk454y",
 }
 
 response = requests.post(url, json=payload, headers=headers)
@@ -166,7 +166,7 @@ async function createResponse() {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer sk-8odN4WAQkkaff1abSVjlmKq9S5gxnt1DPdTqiBIQPuCx0ZAw',
+      'Authorization': 'Bearer sk-DNsGK59BSKBLpQDvF6eI81slAdYR8RgLLIapZwHTASXk454y',
     },
     body: JSON.stringify({
       model: 'deepseek-v4-flash',
@@ -192,7 +192,7 @@ createResponse();
 ```bash
 curl http://10.1.30.201:30300/v1/messages \
   -H "Content-Type: application/json" \
-  -H "x-api-key: sk-8odN4WAQkkaff1abSVjlmKq9S5gxnt1DPdTqiBIQPuCx0ZAw" \
+  -H "x-api-key: sk-DNsGK59BSKBLpQDvF6eI81slAdYR8RgLLIapZwHTASXk454y" \
   -H "anthropic-version: 2023-06-01" \
   -d '{
     "model": "deepseek-v4-flash",
@@ -212,7 +212,7 @@ import anthropic
 
 client = anthropic.Anthropic(
     base_url="http://10.1.30.201:30300",
-    api_key="sk-8odN4WAQkkaff1abSVjlmKq9S5gxnt1DPdTqiBIQPuCx0ZAw",
+    api_key="sk-DNsGK59BSKBLpQDvF6eI81slAdYR8RgLLIapZwHTASXk454y",
 )
 
 message = client.messages.create(
@@ -235,7 +235,7 @@ import Anthropic from '@anthropic-ai/sdk';
 
 const client = new Anthropic({
   baseURL: 'http://10.1.30.201:30300',
-  apiKey: 'sk-8odN4WAQkkaff1abSVjlmKq9S5gxnt1DPdTqiBIQPuCx0ZAw',
+  apiKey: 'sk-DNsGK59BSKBLpQDvF6eI81slAdYR8RgLLIapZwHTASXk454y',
 });
 
 async function main() {
@@ -258,7 +258,7 @@ fetch('http://10.1.30.201:30300/v1/messages', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'x-api-key': 'sk-8odN4WAQkkaff1abSVjlmKq9S5gxnt1DPdTqiBIQPuCx0ZAw',
+    'x-api-key': 'sk-DNsGK59BSKBLpQDvF6eI81slAdYR8RgLLIapZwHTASXk454y',
     'anthropic-version': '2023-06-01',
   },
   body: JSON.stringify({
@@ -286,6 +286,6 @@ fetch('http://10.1.30.201:30300/v1/messages', {
 
 ## 常见问题
 
-- **鉴权**: 所有接口请求需要携带有效的 API Key（`sk-8odN4WAQkkaff1abSVjlmKq9S5gxnt1DPdTqiBIQPuCx0ZAw`）。
+- **鉴权**: 所有接口请求需要携带有效的 API Key（`sk-DNsGK59BSKBLpQDvF6eI81slAdYR8RgLLIapZwHTASXk454y`）。
 - **模型可用性**: 请确保请求的 `model` 参数与平台部署的模型 ID 一致，当前可用模型为 `deepseek-v4-flash` 和 `glm-5.1`。
 
