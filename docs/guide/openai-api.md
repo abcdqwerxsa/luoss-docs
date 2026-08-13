@@ -13,8 +13,8 @@ LuoSS 平台同时提供 OpenAI 和 Anthropic 兼容的 API 接口，方便用�
 
 | 模型 ID | 提供方 | 说明 |
 | :--- | :--- | :--- |
-| `deepseek-v4-flash` | DeepSeek | 快速响应版本，适合日常对话和轻量级任务 |
-| `glm-5.1` | 智谱 | 通用大模型，适合复杂推理和代码生成 |
+| `dsv4` | DeepSeek | 快速响应版本，适合日常对话和轻量级任务 |
+| `glm52` | 智谱 | 通用大模型，适合复杂推理和代码生成 |
 
 ## 鉴权
 
@@ -38,7 +38,7 @@ curl http://10.1.30.201:30300/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer sk-DNsGK59BSKBLpQDvF6eI81slAdYR8RgLLIapZwHTASXk454y" \
   -d '{
-    "model": "deepseek-v4-flash",
+    "model": "dsv4",
     "messages": [
       {"role": "user", "content": "你好，请做一下自我介绍"}
     ]
@@ -58,7 +58,7 @@ client = openai.OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="deepseek-v4-flash",
+    model="dsv4",
     messages=[
         {"role": "user", "content": "你好，请做一下自我介绍"}
     ]
@@ -82,7 +82,7 @@ const openai = new OpenAI({
 async function main() {
   const completion = await openai.chat.completions.create({
     messages: [{ role: 'user', content: '你好，请做一下自我介绍' }],
-    model: 'deepseek-v4-flash',
+    model: 'dsv4',
   });
 
   console.log(completion.choices[0].message.content);
@@ -101,7 +101,7 @@ fetch('http://10.1.30.201:30300/v1/chat/completions', {
     'Authorization': 'Bearer sk-DNsGK59BSKBLpQDvF6eI81slAdYR8RgLLIapZwHTASXk454y',
   },
   body: JSON.stringify({
-    model: 'deepseek-v4-flash',
+    model: 'dsv4',
     messages: [{ role: 'user', content: '你好，请做一下自我介绍' }],
   }),
 })
@@ -115,7 +115,7 @@ fetch('http://10.1.30.201:30300/v1/chat/completions', {
 
 | 参数 | 类型 | 描述 |
 | :--- | :--- | :--- |
-| `model` | string | 模型名称，可选 `deepseek-v4-flash` 或 `glm-5.1` |
+| `model` | string | 模型名称，可选 `dsv4` 或 `glm52` |
 | `messages` | array | 消息列表，包含 `role` (system/user/assistant) 和 `content` |
 | `stream` | boolean | 是否开启流式返回，默认为 `false` |
 | `temperature` | float | 采样温度，控制生成结果的随机性 |
@@ -134,7 +134,7 @@ curl http://10.1.30.201:30300/v1/responses \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer sk-DNsGK59BSKBLpQDvF6eI81slAdYR8RgLLIapZwHTASXk454y" \
   -d '{
-    "model": "deepseek-v4-flash",
+    "model": "dsv4",
     "input": "写一个关于独角兽的三句话睡前故事。"
   }'
 ```
@@ -146,7 +146,7 @@ import requests
 
 url = "http://10.1.30.201:30300/v1/responses"
 payload = {
-    "model": "deepseek-v4-flash",
+    "model": "dsv4",
     "input": "写一个关于独角兽的三句话睡前故事。"
 }
 headers = {
@@ -169,7 +169,7 @@ async function createResponse() {
       'Authorization': 'Bearer sk-DNsGK59BSKBLpQDvF6eI81slAdYR8RgLLIapZwHTASXk454y',
     },
     body: JSON.stringify({
-      model: 'deepseek-v4-flash',
+      model: 'dsv4',
       input: '写一个关于独角兽的三句话睡前故事。',
     }),
   });
@@ -195,7 +195,7 @@ curl http://10.1.30.201:30300/v1/messages \
   -H "x-api-key: sk-DNsGK59BSKBLpQDvF6eI81slAdYR8RgLLIapZwHTASXk454y" \
   -H "anthropic-version: 2023-06-01" \
   -d '{
-    "model": "deepseek-v4-flash",
+    "model": "dsv4",
     "max_tokens": 1024,
     "messages": [
       {"role": "user", "content": "你好，请做一下自我介绍"}
@@ -216,7 +216,7 @@ client = anthropic.Anthropic(
 )
 
 message = client.messages.create(
-    model="deepseek-v4-flash",
+    model="dsv4",
     max_tokens=1024,
     messages=[
         {"role": "user", "content": "你好，请做一下自我介绍"}
@@ -240,7 +240,7 @@ const client = new Anthropic({
 
 async function main() {
   const message = await client.messages.create({
-    model: 'deepseek-v4-flash',
+    model: 'dsv4',
     max_tokens: 1024,
     messages: [{ role: 'user', content: '你好，请做一下自我介绍' }],
   });
@@ -262,7 +262,7 @@ fetch('http://10.1.30.201:30300/v1/messages', {
     'anthropic-version': '2023-06-01',
   },
   body: JSON.stringify({
-    model: 'deepseek-v4-flash',
+    model: 'dsv4',
     max_tokens: 1024,
     messages: [{ role: 'user', content: '你好，请做一下自我介绍' }],
   }),
@@ -275,7 +275,7 @@ fetch('http://10.1.30.201:30300/v1/messages', {
 
 | 参数 | 类型 | 描述 |
 | :--- | :--- | :--- |
-| `model` | string | 模型名称，可选 `deepseek-v4-flash` 或 `glm-5.1` |
+| `model` | string | 模型名称，可选 `dsv4` 或 `glm52` |
 | `messages` | array | 消息列表，包含 `role` (user/assistant) 和 `content` |
 | `max_tokens` | integer | 最大生成的 token 数量 |
 | `stream` | boolean | 是否开启流式返回，默认为 `false` |
@@ -287,5 +287,5 @@ fetch('http://10.1.30.201:30300/v1/messages', {
 ## 常见问题
 
 - **鉴权**: 所有接口请求需要携带有效的 API Key（`sk-DNsGK59BSKBLpQDvF6eI81slAdYR8RgLLIapZwHTASXk454y`）。
-- **模型可用性**: 请确保请求的 `model` 参数与平台部署的模型 ID 一致，当前可用模型为 `deepseek-v4-flash` 和 `glm-5.1`。
+- **模型可用性**: 请确保请求的 `model` 参数与平台部署的模型 ID 一致，当前可用模型为 `dsv4` 和 `glm52`。
 
